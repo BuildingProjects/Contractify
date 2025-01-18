@@ -1,9 +1,12 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 const housImage = require("../assets/home.jpg");
 
 const OnboardingPage = () => {
+  const router = useRouter();
+
   // Animation variants
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -19,6 +22,10 @@ const OnboardingPage = () => {
         staggerChildren: 0.3,
       },
     },
+  };
+
+  const handleGetStarted = () => {
+    router.push('/signup');
   };
 
   return (
@@ -60,10 +67,17 @@ const OnboardingPage = () => {
               className='flex flex-col sm:flex-row gap-4'
               variants={fadeIn}
             >
-              <button className='bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-gray-800 transition-all text-sm sm:text-lg'>
+              <button 
+                onClick={handleGetStarted}  // Added onClick handler here
+                type="button"  // Added type="button"
+                className='bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-gray-800 transition-all text-sm sm:text-lg cursor-pointer'  // Added cursor-pointer
+              >
                 Get Started
               </button>
-              <button className='border-2 border-black text-black px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-black hover:text-white transition-all text-sm sm:text-lg'>
+              <button 
+                type="button"
+                className='border-2 border-black text-black px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-black hover:text-white transition-all text-sm sm:text-lg'
+              >
                 Learn More
               </button>
             </motion.div>
