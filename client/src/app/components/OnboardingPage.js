@@ -81,40 +81,11 @@ const OnboardingPage = () => {
                 Learn More
               </button>
             </motion.div>
-
-            {/* Stats */}
-            <motion.div
-              className='grid grid-cols-2 sm:grid-cols-3 gap-6 pt-6'
-              variants={fadeIn}
-            >
-              <div>
-                <h3 className='text-2xl sm:text-3xl font-bold text-gray-900'>
-                  10K+
-                </h3>
-                <p className='text-gray-600 text-sm sm:text-base'>
-                  Active Users
-                </p>
-              </div>
-              <div>
-                <h3 className='text-2xl sm:text-3xl font-bold text-gray-900'>
-                  98%
-                </h3>
-                <p className='text-gray-600 text-sm sm:text-base'>
-                  Success Rate
-                </p>
-              </div>
-              <div>
-                <h3 className='text-2xl sm:text-3xl font-bold text-gray-900'>
-                  24/7
-                </h3>
-                <p className='text-gray-600 text-sm sm:text-base'>Support</p>
-              </div>
-            </motion.div>
           </motion.div>
 
           {/* Right Column */}
           <motion.div className='relative' variants={fadeIn}>
-            <div className='relative h-[300px] sm:h-[400px] lg:h-[500px] w-full rounded-2xl overflow-hidden shadow-2xl'>
+            <div className='relative  h-[300px] sm:h-[400px] lg:h-[500px] w-full rounded-2xl overflow-hidden shadow-2xl'>
               <Image
                 src={housImage}
                 alt='House key with coins'
@@ -128,7 +99,7 @@ const OnboardingPage = () => {
 
             {/* Testimonial Card */}
             <motion.div
-              className='absolute bottom-[-2rem] sm:bottom-[-2.5rem] right-[-1.5rem] sm:right-[-2rem] bg-white p-6 sm:p-8 rounded-2xl shadow-xl max-w-[280px] sm:max-w-[320px] transform hover:scale-105 transition-transform'
+              className='absolute mr-3 mb-3 bottom-[-2rem] sm:bottom-[-2.5rem] right-[-1.5rem] sm:right-[-2rem] bg-white p-6 sm:p-8 rounded-2xl shadow-xl max-w-[280px] sm:max-w-[320px] transform hover:scale-105 transition-transform'
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1, duration: 0.8 }}
