@@ -1,4 +1,5 @@
 "use client";
+import ComprehensiveServices from "./components/ComprehensiveServices";
 import AboutPage from "./components/AboutPage";
 import ClientsSection from "./components/ClientsPage";
 import Navbar from "./components/Navbar";
@@ -9,6 +10,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-[#FFF5EB] to-white">
       <Navbar />
       <OnboardingPage />
+      <ComprehensiveServices/>
       <AboutPage />
       <WorkProcess />
       <ClientsSection />
