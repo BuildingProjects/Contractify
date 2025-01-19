@@ -1,9 +1,56 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const bcrypt = require('bcrypt');
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-}, { timestamps: true });
 
-module.exports = mongoose.model('User', userSchema);
+const contractorUserSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    dob: { type: Date },
+    gender: { type: String },
+    address: { type: String },
+    pincode: { type: Number },
+    city: { type: String },
+    state: { type: String },
+  },
+  { timestamps: true }
+);
+
+// Hash password before saving
+contractorUserSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return next();
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+});
+
+
+
+const contracteeUserSchema = new mongoose.Schema(
+    {
+      name: { type: String, required: true },
+      email: { type: String, required: true, unique: true },
+      password: { type: String, required: true },
+      dob: { type: Date },
+      gender: { type: String },
+      address: { type: String },
+      pincode: { type: Number },
+      city: { type: String },
+      state: { type: String },
+    },
+    { timestamps: true }
+  );
+
+// Hash password before saving
+contracteeUserSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return next();
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+});
+
+
+
+module.exports = {
+    ContractorUser: mongoose.model('ContractorUser', contractorUserSchema),
+    ContracteeUser: mongoose.model('ContracteeUser', contracteeUserSchema)
+}
