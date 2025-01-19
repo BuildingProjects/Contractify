@@ -5,14 +5,16 @@ import ClientsSection from "./components/ClientsPage";
 import Navbar from "./components/Navbar";
 import OnboardingPage from "./components/OnboardingPage";
 import WorkProcess from "./components/WorkProcessPage";
+import ESolutionsSection from "./components/ESolutionsSection";
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFF5EB] to-white">
+    <div className='min-h-screen bg-gradient-to-b from-[#FFF5EB] to-white'>
       <Navbar />
       <OnboardingPage />
-      <ComprehensiveServices/>
+      <ComprehensiveServices />
       <AboutPage />
       <WorkProcess />
+      <ESolutionsSection />
       <ClientsSection />
     </div>
   );

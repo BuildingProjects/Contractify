@@ -23,18 +23,18 @@ const OnboardingPage = () => {
 
   return (
     <motion.main
-      className="pt-8 sm:pt-8 pb-12 sm:pb-8 px-4 sm:px-6 lg:px-8"
+      className="pt-8 bg-[#FAF4E7] sm:pt-8 pb-12 sm:pb-8 px-4 sm:px-6 lg:px-8"
       initial="hidden"
       animate="visible"
       variants={staggerContainer}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl bg-[#FAF4E7] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left Column */}
           <motion.div className="space-y-6 sm:space-y-8" variants={fadeIn}>
-            <div className="inline-block">
+            <div className="inline-block bg-[#FAF4E7]">
               <motion.span
-                className="bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-xs sm:text-sm font-medium"
+                className="bg-[#FAF4E7] text-amber-800 px-4 py-2 rounded-full text-xs sm:text-sm font-medium"
                 variants={fadeIn}
               >
                 Effortless eSigning
@@ -70,8 +70,8 @@ const OnboardingPage = () => {
           </motion.div>
 
           {/* Right Column */}
-          <motion.div className="relative" variants={fadeIn}>
-            <div className="relative h-[300px] sm:h-[400px] lg:h-[500px] w-full rounded-2xl overflow-hidden shadow-2xl">
+          <motion.div className="relative bg-[#FAF4E7]" variants={fadeIn}>
+            <div className="relative h-[300px] bg-[#FAF4E7] sm:h-[400px] lg:h-[500px] w-full rounded-2xl overflow-hidden shadow-2xl">
               <Image
                 src={housImage}
                 alt="House key with coins"
@@ -80,7 +80,7 @@ const OnboardingPage = () => {
                 priority
               />
               {/* Overlay gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t  from-black/20 to-transparent"></div>
             </div>
 
             {/* Testimonial Card */}

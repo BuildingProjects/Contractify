@@ -32,7 +32,7 @@ const WorkProcess = () => {
   return (
     <section
       ref={ref} // Reference for in-view detection
-      className="bg-[#fffaf0] py-16 md:py-24 overflow-hidden"
+      className="bg-[#FAF4E7] py-16 md:py-24 overflow-hidden"
     >
       <motion.div
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
