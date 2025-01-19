@@ -10,8 +10,8 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-[#FFF5EB] to-white">
       <Navbar />
       <OnboardingPage />
-      <AboutPage />
       <ComprehensiveServices/>
+      <AboutPage />
       <WorkProcess />
       <ClientsSection />
     </div>
