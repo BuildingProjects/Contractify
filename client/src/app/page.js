@@ -1,6 +1,7 @@
 "use client";
 import AboutPage from "./components/AboutPage";
 import ClientsSection from "./components/ClientsPage";
+import ConnectUs from "./components/ConnectUsPage";
 import Navbar from "./components/Navbar";
 import OnboardingPage from "./components/OnboardingPage";
 import TeamSection from "./components/TeamSection";
@@ -14,6 +15,7 @@ export default function Home() {
       <WorkProcess />
       <ClientsSection />
       <TeamSection />
+      <ConnectUs />
     </div>
   );
 }
