@@ -2,6 +2,7 @@
 import ComprehensiveServices from "./components/ComprehensiveServices";
 import AboutPage from "./components/AboutPage";
 import ClientsSection from "./components/ClientsPage";
+import ConnectUs from "./components/ConnectUsPage";
 import Navbar from "./components/Navbar";
 import OnboardingPage from "./components/OnboardingPage";
 import TeamSection from "./components/TeamSection";
@@ -19,6 +20,7 @@ export default function Home() {
       <ESolutionsSection />
       <ClientsSection />
       <TeamSection />
+      <ConnectUs />
       <Experiences />
     </div>
   );
