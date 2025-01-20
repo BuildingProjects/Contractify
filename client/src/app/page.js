@@ -4,6 +4,7 @@ import AboutPage from "./components/AboutPage";
 import ClientsSection from "./components/ClientsPage";
 import Navbar from "./components/Navbar";
 import OnboardingPage from "./components/OnboardingPage";
+import TeamSection from "./components/TeamSection";
 import WorkProcess from "./components/WorkProcessPage";
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <AboutPage />
       <WorkProcess />
       <ClientsSection />
+      <TeamSection />
     </div>
   );
 }
