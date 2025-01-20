@@ -67,7 +67,7 @@ export default function ServicesSection() {
   return (
     <motion.div
       ref={sectionRef}
-      className='bg-[#FEF8ED] py-16 px-6 md:px-12 lg:px-32 relative min-h-screen overflow-hidden'
+      className='bg-[#FAF4E7]  mt-6 py-16 px-6 md:px-12 lg:px-32 relative min-h-screen overflow-hidden'
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }} // Reduced from 0.5

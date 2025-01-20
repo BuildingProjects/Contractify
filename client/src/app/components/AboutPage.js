@@ -52,7 +52,7 @@ const AboutPage = () => {
   };
 
   return (
-    <div className="bg-[#fffaf0] min-h-screen flex items-center justify-center py-8 sm:py-12">
+    <div className="bg-[#FAF4E7] min-h-screen flex items-center justify-center py-8 sm:py-12">
       <motion.div
         ref={ref}
         className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 sm:px-6 lg:px-12"

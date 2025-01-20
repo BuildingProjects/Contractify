@@ -41,7 +41,7 @@ const ClientsSection = () => {
   return (
     <div
       ref={ref}
-      className="bg-[#fffaf0] text-gray-800 py-16 px-6 md:px-12 lg:px-20"
+      className="bg-[#FAF4E7] text-gray-800 py-16 px-6 md:px-12 lg:px-20"
     >
       {/* Header */}
       <motion.h2
