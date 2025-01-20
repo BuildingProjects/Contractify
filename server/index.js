@@ -1,4 +1,5 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
@@ -11,6 +12,8 @@ const MONGO_URI = process.env.MONGO_URI;
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
+
 
 console.log('Mongo URI:', MONGO_URI);
 
