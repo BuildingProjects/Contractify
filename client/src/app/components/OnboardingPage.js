@@ -85,7 +85,7 @@ const OnboardingPage = () => {
 
             {/* Testimonial Card */}
             <motion.div
-              className="absolute bottom-[-2rem] sm:bottom-[-2.5rem] right-[-1.5rem] sm:right-[-2rem] bg-white p-6 sm:p-8 rounded-2xl shadow-xl max-w-[280px] sm:max-w-[320px] transform hover:scale-105 transition-transform"
+              className="absolute bottom-[-2rem] mr-[13px] sm:bottom-[-2.5rem] right-[-1.5rem] sm:right-[-2rem] bg-white p-6 sm:p-8 rounded-2xl shadow-xl max-w-[280px] sm:max-w-[320px] transform hover:scale-105 transition-transform"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1, duration: 0.8 }}
