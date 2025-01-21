@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import ExperiencesPng from "../assets/Experiencepng.jpeg";
 
 const testimonials = [
@@ -23,6 +24,10 @@ export default function Experiences() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Ref for tracking visibility
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-200px" });
+
   // Duplicate testimonials for seamless looping
   const extendedTestimonials = [
     testimonials[testimonials.length - 1], // Clone the last testimonial
@@ -33,10 +38,8 @@ export default function Experiences() {
   const handleTransitionEnd = () => {
     setIsAnimating(false);
     if (activeIndex === 0) {
-      // Jump to the last real testimonial
       setActiveIndex(testimonials.length);
     } else if (activeIndex === testimonials.length + 1) {
-      // Jump to the first real testimonial
       setActiveIndex(1);
     }
   };
@@ -46,15 +49,21 @@ export default function Experiences() {
     const interval = setInterval(() => {
       setIsAnimating(true);
       setActiveIndex((prev) => prev + 1);
-    }, 5000); // 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="bg-[#FAF4E7] py-16 px-4">
+    <motion.div
+      ref={sectionRef}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 1 }}
+      className="bg-[#FAF4E7] py-16 px-4"
+    >
       <div className="container mx-auto max-w-5xl text-center">
-        <p className="text-orange-600 text-sm font-medium uppercase tracking-wide mb-3">
+        <p className="text-[#C28500] text-sm font-medium uppercase tracking-wide mb-3">
           Real Experiences
         </p>
         <h2 className="text-gray-800 text-4xl lg:text-5xl font-serif mb-10">
@@ -80,9 +89,7 @@ export default function Experiences() {
                   isAnimating ? "" : "transition-none"
                 }`}
                 style={{
-                  transform: `translateX(-${
-                    activeIndex * 100
-                  }%)`, // Adjusted for extended testimonials
+                  transform: `translateX(-${activeIndex * 100}%)`,
                 }}
                 onTransitionEnd={handleTransitionEnd}
               >
@@ -91,13 +98,11 @@ export default function Experiences() {
                     key={index}
                     className="min-w-full flex items-center justify-center"
                   >
-                    <div
-                      className="bg-white p-8 rounded-lg shadow-md w-[90%] lg:w-[50%] h-[180px] flex flex-col justify-center"
-                    >
+                    <div className="bg-white p-8 rounded-lg shadow-md w-[90%] lg:w-[50%] h-[180px] flex flex-col justify-center">
                       <p className="text-gray-700 text-lg italic mb-4 text-center">
                         “{testimonial.message}”
                       </p>
-                      <p className="text-orange-600 text-sm font-medium text-center">
+                      <p className="text-[#C28500] text-sm font-medium text-center">
                         — {testimonial.author}
                       </p>
                     </div>
@@ -114,18 +119,18 @@ export default function Experiences() {
             <button
               key={index}
               onClick={() => {
-                setActiveIndex(index + 1); // Adjust for extended testimonials
+                setActiveIndex(index + 1);
                 setIsAnimating(true);
               }}
               className={`w-3 h-3 rounded-full ${
                 activeIndex === index + 1
-                  ? "bg-orange-600"
+                  ? "bg-[#C28500]"
                   : "bg-gray-300 hover:bg-gray-400"
               } transition`}
             ></button>
           ))}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

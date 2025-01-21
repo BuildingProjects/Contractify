@@ -48,7 +48,7 @@ export default function ServicesSection() {
       {/* Header Section */}
       <div className="text-center mb-12">
         <motion.h2
-          className="text-sm font-medium text-yellow-700 tracking-wide uppercase"
+          className="text-sm font-medium text-[#C28500] tracking-wide uppercase"
           initial={{ opacity: 0, y: 10 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4 }}

@@ -145,7 +145,7 @@ const AboutPage = () => {
           variants={containerVariants}
         >
           <motion.p
-            className="text-yellow-600 text-xs sm:text-sm uppercase mb-2 sm:mb-4"
+            className="text-[#C28500] text-xs sm:text-sm uppercase mb-2 sm:mb-4"
             variants={itemVariants}
           >
             Trusted Solutions
@@ -172,10 +172,10 @@ const AboutPage = () => {
           </motion.p>
           <motion.a
             href="#"
-            className="mt-4 sm:mt-6 text-yellow-600 font-medium hover:underline inline-block"
+            className="mt-4 sm:mt-6 text-black font-medium hover:underline inline-block"
             variants={itemVariants}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            // whileHover={{ scale: 1.05 }}
+            // whileTap={{ scale: 0.95 }}
           >
             Learn More
           </motion.a>

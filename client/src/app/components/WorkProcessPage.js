@@ -5,7 +5,7 @@ import bakingImage from "../assets/baking.jpg";
 
 const WorkProcess = () => {
   const ref = React.useRef(null); // Reference for the section
-  const isInView = useInView(ref, { once: true, margin: "-300px" }); // Trigger animation when it's close to the viewport
+  const isInView = useInView(ref, { once: true, margin: "-200px" }); // Trigger animation when it's close to the viewport
 
   // Animation variants for container
   const containerVariants = {
@@ -45,7 +45,7 @@ const WorkProcess = () => {
           className="text-center mb-12 md:mb-16"
           variants={itemVariants}
         >
-          <h3 className="text-[#C5A572] text-sm md:text-base uppercase tracking-wide font-medium mb-4">
+          <h3 className="text-[#C28500] text-sm md:text-base uppercase tracking-wide font-medium mb-4">
             Streamlined Steps
           </h3>
           <h2 className="text-[#1A1A1A] text-4xl md:text-5xl font-bold font-serif">
