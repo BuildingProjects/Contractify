@@ -8,9 +8,10 @@ import OnboardingPage from "./components/OnboardingPage";
 import TeamSection from "./components/TeamSection";
 import WorkProcess from "./components/WorkProcessPage";
 import ESolutionsSection from "./components/ESolutionsSection";
+import Footer from "./components/Footer";
 export default function Home() {
   return (
-    <div className='min-h-screen bg-[#FAF4E7]'>
+    <div className="min-h-screen bg-[#FAF4E7]">
       <Navbar />
       <OnboardingPage />
       <ComprehensiveServices />
@@ -20,6 +21,7 @@ export default function Home() {
       <ClientsSection />
       <TeamSection />
       <ConnectUs />
+      <Footer />
     </div>
   );
 }
