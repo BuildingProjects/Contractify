@@ -9,17 +9,19 @@ import TeamSection from "./components/TeamSection";
 import WorkProcess from "./components/WorkProcessPage";
 import ESolutionsSection from "./components/ESolutionsSection";
 import Footer from "./components/Footer";
+import Experiences from "./components/Experiences";
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#FAF4E7]">
       <Navbar />
       <OnboardingPage />
-      <ComprehensiveServices />
       <AboutPage />
-      <WorkProcess />
+      <ComprehensiveServices />
       <ESolutionsSection />
+      <WorkProcess />
       <ClientsSection />
       <TeamSection />
+      <Experiences />
       <ConnectUs />
       <Footer />
     </div>
