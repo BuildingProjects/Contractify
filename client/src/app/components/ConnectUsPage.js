@@ -1,21 +1,36 @@
-import React from "react";
-import { MapPin, Headphones, Mail } from "lucide-react";
+import React, { useRef } from "react";
+import { MapPin, Mail } from "lucide-react";
 import Image from "next/image";
+import { motion, useInView } from "framer-motion";
 import Background from "../assets/bg_connect.png";
 
 const ConnectUs = () => {
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-200px" });
+
   const handleSubmit = (e) => {
     e.preventDefault();
     // Add form submission logic here
   };
 
   return (
-    <section className="bg-[#fdf4e9] py-16 px-4 md:px-12 lg:px-24">
+    <motion.section
+      ref={sectionRef}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 1 }}
+      className="bg-[#fdf4e9] py-16 px-4 md:px-12 lg:px-24"
+    >
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Left Section */}
-        <div className="space-y-8">
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 1, delay: 0.2 }}
+          className="space-y-8"
+        >
           <div>
-            <p className="text-yellow-600 font-medium mb-2">
+            <p className="text-[#C28500] font-medium mb-2">
               We'd love to hear from you!
             </p>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-800">
@@ -42,16 +57,21 @@ const ConnectUs = () => {
               <span>Bhagalpur, Bihar</span>
             </li>
           </ul>
-        </div>
+        </motion.div>
 
         {/* Right Section */}
-        <div className="relative rounded-lg p-8 overflow-hidden min-h-[500px]">
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 1, delay: 0.4 }}
+          className="relative rounded-lg p-8 overflow-hidden min-h-[500px]"
+        >
           <Image
             src={Background}
             alt="Background pattern"
             fill
             sizes="(max-width: 768px) 50vw, 50vw"
-            className="object-cover "
+            className="object-cover"
             priority
           />
           <div className="relative z-10">
@@ -91,9 +111,9 @@ const ConnectUs = () => {
               </button>
             </form>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

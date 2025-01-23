@@ -34,10 +34,10 @@ const OnboardingPage = () => {
           <motion.div className="space-y-6 sm:space-y-8" variants={fadeIn}>
             <div className="inline-block bg-[#FAF4E7]">
               <motion.span
-                className="bg-[#FAF4E7] text-amber-800 px-4 py-2 rounded-full text-xs sm:text-sm font-medium"
+                className="bg-[#FAF4E7] text-[#C28500] px-4 py-2 rounded-full text-xs sm:text-sm font-medium"
                 variants={fadeIn}
               >
-                Effortless eSigning
+                EFFORTLESS ESIGNING
               </motion.span>
             </div>
 
