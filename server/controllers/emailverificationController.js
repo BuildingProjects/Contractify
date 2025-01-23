@@ -1,18 +1,24 @@
 const { ContractorUser, ContracteeUser } = require("../models/User");
+
 const nodemailer = require('nodemailer');
 
   exports.verifyContractorEmail = async (req, res) => {
     try {
-      const { email, code } = req.body;
+        console.log(req);
+       const { email, code } = req.body;
+   
   
       // Find user by email and verification code
       const user = await ContractorUser.findOne({ email });
+      console.log(user);
       if (user.emailVerificationToken !== code) {
         return res.status(400).json({ message: 'Invalid verification code or email' });
       }
+
+      console.log(user);
   
       // Verify user
-      user.isVerified = true;
+      user.emailVerified = true;
       user.emailVerificationToken = null; // Clear the code after verification
       await user.save();
   
@@ -35,7 +41,7 @@ const nodemailer = require('nodemailer');
       }
   
       // Verify user
-      user.isVerified = true;
+      user.emailVerified = true;
       user.emailVerificationToken = null; // Clear the code after verification
       await user.save();
   

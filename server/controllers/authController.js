@@ -3,7 +3,6 @@ const { generateToken } = require("../utils/jwtHelper");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 
-
 // Signup Controller
 exports.contractorSignup = async (req, res) => {
   const { name, email, password } = req.body;
@@ -66,7 +65,12 @@ exports.contracteeSignup = async (req, res) => {
     const emailVerificationToken = Math.floor(100000 + Math.random() * 900000);
 
     // const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new ContracteeUser({ name, email, password });
+    const user = new ContracteeUser({
+      name,
+      email,
+      password,
+      emailVerificationToken,
+    });
     await user.save();
 
     await sendVerificationEmail(email, emailVerificationToken);
@@ -162,6 +166,7 @@ exports.contractorLogin = async (req, res) => {
 
 //send verification email
 const sendVerificationEmail = async (email, verificationCode) => {
+  console.log(process.env.EMAIL, process.env.EMAIL_PASSWORD);
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
