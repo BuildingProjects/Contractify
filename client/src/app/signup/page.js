@@ -82,9 +82,6 @@ export default function SignupPage() {
             >
               Create your account
             </motion.h2>
-            <motion.p variants={fadeIn} className="text-gray-600 text-center text-sm">
-              Start your 30-day free trial. No credit card required.
-            </motion.p>
           </div>
 
           {/* Form */}
@@ -255,7 +252,6 @@ export default function SignupPage() {
           </motion.form>
         </motion.div>
       </div>
-
       {/* Right Side - Image/Info */}
       <motion.div className="hidden lg:block relative" variants={fadeIn}>
         <div className="absolute inset-0 bg-gradient-to-b from-[#FFF5EB] to-white">
