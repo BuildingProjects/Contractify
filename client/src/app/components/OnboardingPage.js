@@ -1,9 +1,12 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 const housImage = require("../assets/home.jpg");
 
 const OnboardingPage = () => {
+  const router = useRouter();
+
   // Animation variants
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -19,6 +22,10 @@ const OnboardingPage = () => {
         staggerChildren: 0.3,
       },
     },
+  };
+
+  const handleGetStarted = () => {
+    router.push('/signup');
   };
 
   return (
