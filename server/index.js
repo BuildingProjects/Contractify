@@ -5,6 +5,8 @@ require('dotenv').config();
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
+const profileRoutes = require('./routes/profileRoutes');
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -28,6 +30,8 @@ app.use(express.urlencoded({extended: true}));
 
 // Use routes
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
+
 
 // Start the server
 app.listen(PORT, () => {
