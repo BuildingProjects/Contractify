@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
-const bcrypt = require('bcrypt');
-
+const bcrypt = require("bcrypt");
 
 const contractorUserSchema = new mongoose.Schema(
   {
@@ -13,44 +12,44 @@ const contractorUserSchema = new mongoose.Schema(
     pincode: { type: Number },
     city: { type: String },
     state: { type: String },
+    emailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String },
   },
   { timestamps: true }
 );
 
 // Hash password before saving
-contractorUserSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) return next();
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
+contractorUserSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
-
-
 
 const contracteeUserSchema = new mongoose.Schema(
-    {
-      name: { type: String, required: true },
-      email: { type: String, required: true, unique: true },
-      password: { type: String, required: true },
-      dob: { type: Date },
-      gender: { type: String },
-      address: { type: String },
-      pincode: { type: Number },
-      city: { type: String },
-      state: { type: String },
-    },
-    { timestamps: true }
-  );
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    dob: { type: Date },
+    gender: { type: String },
+    address: { type: String },
+    pincode: { type: Number },
+    city: { type: String },
+    state: { type: String },
+    emailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String },
+  },
+  { timestamps: true }
+);
 
 // Hash password before saving
-contracteeUserSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) return next();
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
+contracteeUserSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
-
-
 module.exports = {
-    ContractorUser: mongoose.model('ContractorUser', contractorUserSchema),
-    ContracteeUser: mongoose.model('ContracteeUser', contracteeUserSchema)
-}
+  ContractorUser: mongoose.model("ContractorUser", contractorUserSchema),
+  ContracteeUser: mongoose.model("ContracteeUser", contracteeUserSchema),
+};
