@@ -10,12 +10,13 @@ module.exports = {
 module.exports.verifyToken = (req, res, next) => {
     try {
       const token = req.cookies.authToken; // Retrieve token from the cookie
+      console.log('Token:', token);
       if (!token) {
         return res.status(401).json({ message: 'Access denied. No token provided.' });
       }
   
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, JWT_SECRET);
       req.user = decoded; // Add user data to request object
       next();
     } catch (error) {

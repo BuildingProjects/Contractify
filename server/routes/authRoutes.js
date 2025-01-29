@@ -1,6 +1,8 @@
 const express = require('express');
 const { contractorSignup , contracteeSignup, contracteeLogin , contractorLogin } = require('../controllers/authController');
 const { verifyContractorEmail, verifyContracteeEmail } = require('../controllers/emailverificationController');
+
+
 const router = express.Router();
 
 router.post('/contractorSignup', contractorSignup);
