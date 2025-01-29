@@ -1,12 +1,14 @@
 const express = require('express');
-const { editContractorProfile } =  require('../controllers/editProfileController');
-const { getContractorProfile } =  require('../controllers/getProfileController');
-const { generateToken } = require("../utils/jwtHelper");
+const { editContractorProfile , editContracteeProfile } =  require('../controllers/editProfileController');
+const { getContractorProfile  , getContracteeProfile } =  require('../controllers/getProfileController');
+const { verifyToken } = require("../utils/jwtHelper");
 
 const router = express.Router();
 
-router.get('/getContractorProfile', generateToken, getContractorProfile);
-router.post('/editContractorProfile',generateToken, editContractorProfile);
+router.get('/getContractorProfile', verifyToken, getContractorProfile);
+router.get('/getContracteeProfile', verifyToken, getContracteeProfile);
+router.post('/editContractorProfile',verifyToken, editContractorProfile);
+router.post('/editContracteeProfile',verifyToken, editContracteeProfile);
 
 
 module.exports = router;

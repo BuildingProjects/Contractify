@@ -6,6 +6,8 @@ const cors = require("cors");
 
 // Import routes
 const authRoutes = require("./routes/authRoutes");
+const profileRoutes = require("./routes/profileRoutes");
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
@@ -35,6 +37,7 @@ mongoose
 
 // Use routes
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
 
 // Handle unknown routes and errors
 app.use((req, res, next) => {
