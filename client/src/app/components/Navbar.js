@@ -7,12 +7,12 @@ const Navbar = () => {
 
   const router = useRouter();
   const handleGetStarted = () => {
-    router.push('/signup');
+    router.push("/choices");
   };
   return (
-    <nav className="w-full pt-2 z-50 bg-[#FAF4E7] to-white backdrop-blur-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+    <nav className='w-full pt-2 z-50 bg-[#FAF4E7] to-white backdrop-blur-sm'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='flex justify-between items-center h-20'>
           {/* Logo */}
           <Link href='/' className='text-4xl  font-bold text-gray-900'>
             Contractify
