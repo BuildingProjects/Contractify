@@ -1,14 +1,31 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const mongoose = require("mongoose");
-require("dotenv").config();
+const dotenv = require("dotenv");
 const cors = require("cors");
+const connectDB = require("./utils/db");
+
+// Load environment variables
+dotenv.config();
 
 // Import routes
 const authRoutes = require("./routes/authRoutes");
+const profileRoutes = require("./routes/profileRoutes");
+const contractRoutes = require("./routes/contractRoutes");
+
+// Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI;
+
+// Connect to MongoDB
+connectDB();
+
+// CORS Middleware
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  })
+);
 
 // CORS Middleware
 app.use(
@@ -22,19 +39,10 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-console.log("Mongo URI:", MONGO_URI);
-
-// Connect to MongoDB
-mongoose
-  .connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
-
 // Use routes
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/contracts", contractRoutes);
 
 // Handle unknown routes and errors
 app.use((req, res, next) => {
