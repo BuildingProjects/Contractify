@@ -7,15 +7,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [stage, setStage] = useState("signup"); // 'signup' or 'otp'
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
     userType: searchParams.get("userType") || "",
+    otp: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(30);
+  const [canResend, setCanResend] = useState(false);
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -27,20 +31,120 @@ export default function SignupPage() {
     setError("");
     setLoading(true);
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
-      return;
+    if (stage === "signup") {
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const apiUrl =
+          // formData.userType === "contractor"
+          "http://localhost:5000/api/auth/contractorSignup";
+        // : "http://localhost:5000/api/auth/contracteeSignup";
+
+        const requestBody = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          // name: formData.userType === "contractor" ? formData.name : undefined,
+        };
+
+        const res = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Signup failed");
+        }
+
+        // Move to OTP stage
+        setStage("otp");
+        startResendTimer();
+      } catch (err) {
+        setError(err.message || "Failed to create account. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    } else if (stage === "otp") {
+      try {
+        const otpRes = await fetch(
+          "http://localhost:5000/api/auth/verifyContractorEmail",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: formData.email,
+              code: formData.otp,
+            }),
+          }
+        );
+
+        const otpData = await otpRes.json();
+
+        if (!otpRes.ok) {
+          throw new Error(otpData.message || "OTP verification failed");
+        }
+
+        // OTP verified successfully
+        if (otpData.token) {
+          // Store token in localStorage
+          localStorage.setItem("authToken", otpData.token);
+        }
+
+        router.push("/dashboard");
+      } catch (err) {
+        setError(err.message || "OTP verification failed");
+      } finally {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleResendOTP = async () => {
+    if (!canResend) return;
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push("/login");
+      const resendRes = await fetch(
+        "http://localhost:5000/api/auth/resend-otp",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: formData.email }),
+        }
+      );
+
+      const resendData = await resendRes.json();
+
+      if (!resendRes.ok) {
+        throw new Error(resendData.message || "Failed to resend OTP");
+      }
+
+      startResendTimer();
+      setError("");
     } catch (err) {
-      setError("Failed to create account. Please try again.");
-    } finally {
-      setLoading(false);
+      setError(err.message || "Failed to resend OTP");
     }
+  };
+
+  const startResendTimer = () => {
+    setCanResend(false);
+    setTimer(30);
+    const interval = setInterval(() => {
+      setTimer((prevTimer) => {
+        if (prevTimer <= 1) {
+          clearInterval(interval);
+          setCanResend(true);
+          return 0;
+        }
+        return prevTimer - 1;
+      });
+    }, 1000);
   };
 
   const handleChange = (e) => {
@@ -64,14 +168,12 @@ export default function SignupPage() {
         },
       }}
     >
-      {/* Left Side - Form */}
       <div className='flex items-center justify-center bg-white px-4 py-8'>
         <motion.div className='w-full max-w-md mx-auto' variants={fadeIn}>
-          {/* Logo and Header */}
           <div className='space-y-3 mb-6'>
             <motion.div variants={fadeIn} className='text-center'>
               <span className='bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-xs sm:text-sm font-medium'>
-                Join Contractify
+                {stage === "signup" ? "Join Contractify" : "Verify OTP"}
               </span>
             </motion.div>
 
@@ -79,11 +181,10 @@ export default function SignupPage() {
               variants={fadeIn}
               className='text-2xl sm:text-3xl font-serif text-gray-900 text-center'
             >
-              Create your account
+              {stage === "signup" ? "Create your account" : "Verify Your Email"}
             </motion.h2>
           </div>
 
-          {/* Form */}
           <motion.form
             onSubmit={handleSubmit}
             className='space-y-4'
@@ -99,172 +200,207 @@ export default function SignupPage() {
               </motion.div>
             )}
 
-            <div className='space-y-4'>
-              {formData.userType && (
+            {stage === "signup" ? (
+              <>
+                {formData.userType && (
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700'>
+                      Selected User Type
+                    </label>
+                    <input
+                      type='text'
+                      value={
+                        formData.userType.charAt(0).toUpperCase() +
+                        formData.userType.slice(1)
+                      }
+                      disabled
+                      className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600'
+                    />
+                  </div>
+                )}
+
                 <div>
-                  <label className='block text-sm font-medium text-gray-700'>
-                    Selected User Type
+                  <label
+                    htmlFor='name'
+                    className='block text-sm font-medium text-gray-700'
+                  >
+                    Full Name
                   </label>
                   <input
+                    id='name'
+                    name='name'
                     type='text'
-                    value={
-                      formData.userType.charAt(0).toUpperCase() +
-                      formData.userType.slice(1)
-                    }
-                    disabled
-                    className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600'
+                    required
+                    className='mt-1 text-black block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all'
+                    placeholder='Enter your full name'
+                    value={formData.name}
+                    onChange={handleChange}
                   />
                 </div>
-              )}
 
-              <div>
-                <label
-                  htmlFor='name'
-                  className='block text-sm font-medium text-gray-700'
-                >
-                  Full Name
-                </label>
-                <input
-                  id='name'
-                  name='name'
-                  type='text'
-                  required
-                  className='mt-1 text-black block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all'
-                  placeholder='Enter your full name'
-                  value={formData.name}
-                  onChange={handleChange}
-                />
-              </div>
+                <div>
+                  <label
+                    htmlFor='email'
+                    className='block text-sm font-medium text-gray-700'
+                  >
+                    Email address
+                  </label>
+                  <input
+                    id='email'
+                    name='email'
+                    type='email'
+                    required
+                    className='mt-1 text-black block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all'
+                    placeholder='Enter your email'
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
 
-              <div>
-                <label
-                  htmlFor='email'
-                  className='block text-sm font-medium text-gray-700'
-                >
-                  Email address
-                </label>
-                <input
-                  id='email'
-                  name='email'
-                  type='email'
-                  required
-                  className='mt-1 text-black block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all'
-                  placeholder='Enter your email'
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
+                <div>
+                  <label
+                    htmlFor='password'
+                    className='block text-sm font-medium text-gray-700'
+                  >
+                    Password
+                  </label>
+                  <input
+                    id='password'
+                    name='password'
+                    type='password'
+                    required
+                    className='mt-1 text-black block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all'
+                    placeholder='Create a password'
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                </div>
 
-              <div>
-                <label
-                  htmlFor='password'
-                  className='block text-sm font-medium text-gray-700'
-                >
-                  Password
-                </label>
-                <input
-                  id='password'
-                  name='password'
-                  type='password'
-                  required
-                  className='mt-1 text-black block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all'
-                  placeholder='Create a password'
-                  value={formData.password}
-                  onChange={handleChange}
-                />
+                <div>
+                  <label
+                    htmlFor='confirmPassword'
+                    className='block text-sm font-medium text-gray-700'
+                  >
+                    Confirm Password
+                  </label>
+                  <input
+                    id='confirmPassword'
+                    name='confirmPassword'
+                    type='password'
+                    required
+                    className='mt-1 text-black block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all'
+                    placeholder='Confirm your password'
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className='space-y-4'>
+                <div>
+                  <label
+                    htmlFor='otp'
+                    className='block text-sm font-medium text-gray-700'
+                  >
+                    Enter OTP
+                  </label>
+                  <input
+                    id='otp'
+                    name='otp'
+                    type='text'
+                    required
+                    maxLength='6'
+                    className='mt-1 text-black block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all'
+                    placeholder='Enter 6-digit OTP'
+                    value={formData.otp}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className='flex justify-between items-center'>
+                  <button
+                    type='button'
+                    onClick={handleResendOTP}
+                    disabled={!canResend}
+                    className={`text-sm ${
+                      canResend
+                        ? "text-black hover:text-gray-700"
+                        : "text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Resend OTP {!canResend && `(${timer}s)`}
+                  </button>
+                </div>
               </div>
-
-              <div>
-                <label
-                  htmlFor='confirmPassword'
-                  className='block text-sm font-medium text-gray-700'
-                >
-                  Confirm Password
-                </label>
-                <input
-                  id='confirmPassword'
-                  name='confirmPassword'
-                  type='password'
-                  required
-                  className='mt-1 text-black block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all'
-                  placeholder='Confirm your password'
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
+            )}
 
             <button
               type='submit'
               disabled={loading}
               className='w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6'
             >
-              {loading ? "Creating account..." : "Create account"}
+              {loading
+                ? stage === "signup"
+                  ? "Creating account..."
+                  : "Verifying..."
+                : stage === "signup"
+                ? "Create account"
+                : "Verify OTP"}
             </button>
 
-            <div className='relative my-4'>
-              <div className='absolute inset-0 flex items-center'>
-                <div className='w-full border-t border-gray-300'></div>
-              </div>
-              <div className='relative flex justify-center text-sm'>
-                <span className='px-2 bg-white text-gray-500'>
-                  Or continue with
-                </span>
-              </div>
-            </div>
+            {stage === "signup" && (
+              <>
+                <div className='relative my-4'>
+                  <div className='absolute inset-0 flex items-center'>
+                    <div className='w-full border-t border-gray-300'></div>
+                  </div>
+                  <div className='relative flex justify-center text-sm'>
+                    <span className='px-2 bg-white text-gray-500'>
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
 
-            <div className='grid grid-cols-2 gap-3'>
-              <button
-                type='button'
-                className='flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-all text-sm'
-              >
-                <svg className='h-5 w-5 mr-2' viewBox='0 0 24 24'>
-                  <path
-                    d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
-                    fill='#4285F4'
-                  />
-                  <path
-                    d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'
-                    fill='#34A853'
-                  />
-                  <path
-                    d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'
-                    fill='#FBBC05'
-                  />
-                  <path
-                    d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'
-                    fill='#EA4335'
-                  />
-                </svg>
-                Google
-              </button>
-              <button
-                type='button'
-                className='flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-all text-sm'
-              >
-                <svg
-                  className='h-5 w-5 mr-2'
-                  fill='currentColor'
-                  viewBox='0 0 24 24'
+                <div className='grid'>
+                  <button
+                    type='button'
+                    className='flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-all text-sm'
+                  >
+                    <svg className='h-5 w-5 mr-2' viewBox='0 0 24 24'>
+                      <path
+                        d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
+                        fill='#4285F4'
+                      />
+                      <path
+                        d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'
+                        fill='#34A853'
+                      />
+                      <path
+                        d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'
+                        fill='#FBBC05'
+                      />
+                      <path
+                        d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'
+                        fill='#EA4335'
+                      />
+                    </svg>
+                    Google
+                  </button>
+                </div>
+
+                <motion.p
+                  variants={fadeIn}
+                  className='text-center text-sm text-gray-600 mt-4'
                 >
-                  <path d='M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z' />
-                </svg>
-                Facebook
-              </button>
-            </div>
-
-            <motion.p
-              variants={fadeIn}
-              className='text-center text-sm text-gray-600 mt-4'
-            >
-              Already have an account?{" "}
-              <Link
-                href='/login'
-                className='font-medium text-black hover:text-gray-800'
-              >
-                Sign in
-              </Link>
-            </motion.p>
+                  Already have an account?{" "}
+                  <Link
+                    href='/login'
+                    className='font-medium text-black hover:text-gray-800'
+                  >
+                    Sign in
+                  </Link>
+                </motion.p>
+              </>
+            )}
           </motion.form>
         </motion.div>
       </div>

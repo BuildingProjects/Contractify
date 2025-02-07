@@ -14,7 +14,7 @@ export default function ChoicesPage() {
   };
 
   const handleRoleSelect = (role) => {
-    router.push(`/signup?userType=${role}`);
+    router.push(`/login?userType=${role}`);
   };
 
   return (
