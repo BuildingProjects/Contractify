@@ -13,7 +13,7 @@ export default function SignupPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    userType: searchParams.get("userType") || "",
+    userType: "",
     otp: "",
   });
   const [error, setError] = useState("");
@@ -25,11 +25,25 @@ export default function SignupPage() {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
+  useEffect(() => {
+    // Retrieve user type from localStorage
+    const storedUserType = localStorage.getItem("userType");
+    // console.log(storedUserType);
 
+    if (storedUserType) {
+      setFormData((prev) => ({
+        ...prev,
+        userType: storedUserType,
+      }));
+      // Clear the stored user type after retrieval
+      // localStorage.removeItem("userType");
+    }
+  }, []);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+    console.log("user Type:", formData.userType);
 
     if (stage === "signup") {
       if (formData.password !== formData.confirmPassword) {
@@ -40,15 +54,14 @@ export default function SignupPage() {
 
       try {
         const apiUrl =
-          // formData.userType === "contractor"
-          "http://localhost:5000/api/auth/contractorSignup";
-        // : "http://localhost:5000/api/auth/contracteeSignup";
+          formData.userType === "contractor"
+            ? "http://localhost:5000/api/auth/contractorSignup"
+            : "http://localhost:5000/api/auth/contracteeSignup";
 
         const requestBody = {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          // name: formData.userType === "contractor" ? formData.name : undefined,
         };
 
         const res = await fetch(apiUrl, {
@@ -73,17 +86,18 @@ export default function SignupPage() {
       }
     } else if (stage === "otp") {
       try {
-        const otpRes = await fetch(
-          "http://localhost:5000/api/auth/verifyContractorEmail",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: formData.email,
-              code: formData.otp,
-            }),
-          }
-        );
+        const apiUrl =
+          formData.userType === "contractor"
+            ? "http://localhost:5000/api/auth/verifyContractorEmail"
+            : "http://localhost:5000/api/auth/verifyContracteeEmail";
+        const otpRes = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            code: formData.otp,
+          }),
+        });
 
         const otpData = await otpRes.json();
 

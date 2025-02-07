@@ -104,7 +104,7 @@ exports.contracteeLogin = async (req, res) => {
   try {
     const user = await ContracteeUser.findOne({ email });
     if (!user) {
-      return res.status(400).json({ error: "Invalid email or password" });
+      return res.status(402).json({ error: "Invalid email or password" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -139,7 +139,7 @@ exports.contractorLogin = async (req, res) => {
   try {
     const user = await ContractorUser.findOne({ email });
     if (!user) {
-      return res.status(400).json({ error: "Invalid email or password" });
+      return res.status(402).json({ error: "Invalid email or password" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);

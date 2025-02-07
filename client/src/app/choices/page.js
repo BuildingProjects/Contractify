@@ -14,12 +14,16 @@ export default function ChoicesPage() {
   };
 
   const handleRoleSelect = (role) => {
-    router.push(`/login?userType=${role}`);
+    // Store user type in localStorage
+    localStorage.setItem("userType", role);
+
+    // Navigate to login page without user type in URL
+    router.push("/login");
   };
 
   return (
-    <motion.div 
-      className='min-h-screen flex items-center justify-center bg-white px-4 py-8'
+    <motion.div
+      className='min-h-screen flex items-center justify-center bg-white px-6 py-12'
       initial='hidden'
       animate='visible'
       variants={{
@@ -30,78 +34,75 @@ export default function ChoicesPage() {
         },
       }}
     >
-      <motion.div 
-        className='w-full max-w-2xl mx-auto grid md:grid-cols-2 gap-8 items-center'
+      <motion.div
+        className='w-full max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center'
         variants={fadeIn}
       >
         {/* Text Section */}
-        <div className='text-center md:text-left space-y-6 order-2 md:order-1'>
+        <div className='text-center md:text-left space-y-8 order-1'>
           <motion.div variants={fadeIn}>
-            <span className='bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-xs sm:text-sm font-medium inline-block'>
+            <span className='bg-amber-100 text-amber-800 px-5 py-2.5 rounded-full text-sm sm:text-base font-medium inline-block'>
               Choose Your Role
             </span>
           </motion.div>
 
           <motion.h2
             variants={fadeIn}
-            className='text-3xl md:text-4xl font-serif text-gray-900'
+            className='text-4xl md:text-5xl font-serif font-bold text-gray-900'
           >
             Select Your Professional Path
           </motion.h2>
 
-          <motion.p 
+          <motion.p
             variants={fadeIn}
-            className='text-gray-600 text-sm md:text-base'
+            className='text-gray-700 text-lg md:text-xl'
           >
-            Discover the right role for your professional journey
+            Discover the right role for your professional journey.
           </motion.p>
         </div>
 
         {/* Buttons Section */}
-        <div className='space-y-6 order-1 md:order-2'>
+        <div className='space-y-6 order-2 md:order-2'>
           <button
-            onClick={() => handleRoleSelect('contractor')}
-            className={`w-full flex items-center justify-center py-4 px-6 border border-transparent rounded-xl shadow-lg text-base font-medium transition-all ${
+            onClick={() => handleRoleSelect("contractor")}
+            className={`w-full flex items-center justify-center py-5 px-8 border border-transparent rounded-2xl shadow-xl text-lg font-semibold transition-all ${
               hovered === "contractor"
-                ? "bg-black text-white scale-105" 
-                : "bg-white text-black border-gray-300 hover:bg-gray-50"
+                ? "bg-black text-white scale-110"
+                : "bg-white text-black border-gray-400 hover:bg-gray-100"
             }`}
             onMouseEnter={() => setHovered("contractor")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Briefcase className='h-6 w-6 mr-3' />
+            <Briefcase className='h-8 w-8 mr-4' />
             <div className='text-left'>
-              <span className='block text-lg font-semibold'>Contractor</span>
-              <p className='text-sm opacity-70'>I want to provide services</p>
+              <span className='block text-xl font-bold'>Contractor</span>
+              <p className='text-base opacity-70'>I want to provide services</p>
             </div>
           </button>
 
           <button
-            onClick={() => handleRoleSelect('contractee')}
-            className={`w-full flex items-center justify-center py-4 px-6 border border-transparent rounded-xl shadow-lg text-base font-medium transition-all ${
+            onClick={() => handleRoleSelect("contractee")}
+            className={`w-full flex items-center justify-center py-5 px-8 border border-transparent rounded-2xl shadow-xl text-lg font-semibold transition-all ${
               hovered === "contractee"
-                ? "bg-black text-white scale-105" 
-                : "bg-white text-black border-gray-300 hover:bg-gray-50"
+                ? "bg-black text-white scale-110"
+                : "bg-white text-black border-gray-400 hover:bg-gray-100"
             }`}
             onMouseEnter={() => setHovered("contractee")}
             onMouseLeave={() => setHovered(null)}
           >
-            <Users className='h-6 w-6 mr-3' />
+            <Users className='h-8 w-8 mr-4' />
             <div className='text-left'>
-              <span className='block text-lg font-semibold'>Contractee</span>
-              <p className='text-sm opacity-70'>I need professional services</p>
+              <span className='block text-xl font-bold'>Contractee</span>
+              <p className='text-base opacity-70'>I need professional services</p>
             </div>
           </button>
 
-          <motion.p 
+          <motion.p
             variants={fadeIn}
-            className='text-center text-sm text-gray-600 mt-4'
+            className='text-center text-base text-gray-700 mt-6'
           >
             Not sure?{" "}
-            <a 
-              href='#' 
-              className='font-medium text-black hover:text-gray-800'
-            >
+            <a href='#' className='font-medium text-black hover:text-gray-900'>
               Learn more about roles
             </a>
           </motion.p>

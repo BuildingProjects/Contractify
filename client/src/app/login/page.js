@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -9,25 +9,133 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    userType: "",
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Email validation
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    // User type validation
+    if (!formData.userType) {
+      newErrors.userType = "Please select a user type";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  useEffect(() => {
+    const storedUserType = localStorage.getItem("userType");
+    if (storedUserType) {
+      setFormData((prev) => ({
+        ...prev,
+        userType: storedUserType,
+      }));
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
+    setApiError("");
+    setErrors({});
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const apiUrl =
+        formData.userType === "contractor"
+          ? "http://localhost:5000/api/auth/contractorLogin"
+          : "http://localhost:5000/api/auth/contracteeLogin";
+
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        switch (res.status) {
+          case 400:
+            if (data.errors) {
+              const backendErrors = {};
+              data.errors.forEach((error) => {
+                backendErrors[error.field] = error.message;
+              });
+              setErrors(backendErrors);
+            } else {
+              setApiError(data.message || "Invalid request");
+            }
+            break;
+          case 401:
+            setApiError("Invalid email or password");
+            break;
+          case 402:
+            setApiError("Account not found");
+            break;
+          case 422:
+            if (data.errors) {
+              const backendErrors = {};
+              data.errors.forEach((error) => {
+                backendErrors[error.field] = error.message;
+              });
+              setErrors(backendErrors);
+            }
+            break;
+          case 429:
+            setApiError("Too many login attempts. Please try again later.");
+            break;
+          case 500:
+            setApiError("Server error. Please try again later.");
+            break;
+          default:
+            setApiError(data.message || "An unexpected error occurred");
+        }
+        return;
+      }
+
+      // Clear any existing errors on successful login
+      setErrors({});
+      setApiError("");
+
+      localStorage.setItem("authToken", data.token);
+      if (data.userType) {
+        localStorage.setItem("userType", data.userType);
+      }
+
       router.push("/dashboard");
     } catch (err) {
-      setError("Invalid email or password. Please try again.");
+      setApiError("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -39,6 +147,23 @@ export default function LoginPage() {
       ...prev,
       [name]: value,
     }));
+    // Clear field-specific error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+    // Clear API error when user makes any change
+    if (apiError) {
+      setApiError("");
+    }
+  };
+
+  const getInputClassName = (fieldName) => {
+    return `mt-1 text-black block w-full px-3 py-2 border ${
+      errors[fieldName] ? "border-red-500" : "border-gray-300"
+    } rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all`;
   };
 
   return (
@@ -82,13 +207,13 @@ export default function LoginPage() {
             className='mt-6 space-y-4'
             variants={fadeIn}
           >
-            {error && (
+            {apiError && (
               <motion.div
                 className='p-3 text-sm text-red-500 bg-red-50 rounded-lg'
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                {error}
+                {apiError}
               </motion.div>
             )}
 
@@ -105,11 +230,14 @@ export default function LoginPage() {
                   name='email'
                   type='email'
                   required
-                  className='mt-1 text-black block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all'
+                  className={getInputClassName("email")}
                   placeholder='Enter your email'
                   value={formData.email}
                   onChange={handleChange}
                 />
+                {errors.email && (
+                  <p className='mt-1 text-sm text-red-500'>{errors.email}</p>
+                )}
               </div>
 
               <div>
@@ -124,28 +252,17 @@ export default function LoginPage() {
                   name='password'
                   type='password'
                   required
-                  className='mt-1 text-black block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all'
+                  className={getInputClassName("password")}
                   placeholder='Enter your password'
                   value={formData.password}
                   onChange={handleChange}
                 />
+                {errors.password && (
+                  <p className='mt-1 text-sm text-red-500'>{errors.password}</p>
+                )}
               </div>
 
-              <div className='flex items-center justify-between'>
-                <div className='flex items-center'>
-                  <input
-                    id='remember-me'
-                    name='remember-me'
-                    type='checkbox'
-                    className='h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded'
-                  />
-                  <label
-                    htmlFor='remember-me'
-                    className='ml-2 block text-sm text-gray-700'
-                  >
-                    Remember me
-                  </label>
-                </div>
+              <div className='flex items-center justify-end'>
                 <Link
                   href='/forgot-password'
                   className='text-sm font-medium text-black hover:text-gray-800'
@@ -160,7 +277,33 @@ export default function LoginPage() {
               disabled={loading}
               className='w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6'
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? (
+                <span className='flex items-center'>
+                  <svg
+                    className='animate-spin -ml-1 mr-3 h-5 w-5 text-white'
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                  >
+                    <circle
+                      className='opacity-25'
+                      cx='12'
+                      cy='12'
+                      r='10'
+                      stroke='currentColor'
+                      strokeWidth='4'
+                    ></circle>
+                    <path
+                      className='opacity-75'
+                      fill='currentColor'
+                      d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                    ></path>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                "Sign in"
+              )}
             </button>
 
             <div className='relative'>
@@ -174,10 +317,13 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className='grid grid-cols-2 gap-3'>
+            <div className='grid'>
               <button
                 type='button'
                 className='flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-all text-sm'
+                onClick={() => {
+                  setApiError("Google sign-in is not implemented yet");
+                }}
               >
                 <svg className='h-5 w-5 mr-2' viewBox='0 0 24 24'>
                   <path
@@ -198,19 +344,6 @@ export default function LoginPage() {
                   />
                 </svg>
                 Google
-              </button>
-              <button
-                type='button'
-                className='flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-all text-sm'
-              >
-                <svg
-                  className='h-5 w-5 mr-2'
-                  fill='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path d='M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z' />
-                </svg>
-                Facebook
               </button>
             </div>
 
