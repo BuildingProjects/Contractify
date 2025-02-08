@@ -1,7 +1,8 @@
 const { ContractorUser, ContracteeUser } = require("../models/User");
 const { generateToken } = require("../utils/jwtHelper");
+const { sendVerificationEmail } = require("./sendVerificationMailController");
+
 const bcrypt = require("bcrypt");
-const nodemailer = require("nodemailer");
 
 // Signup Controller
 exports.contractorSignup = async (req, res) => {
@@ -22,6 +23,7 @@ exports.contractorSignup = async (req, res) => {
 
     // const hashedPassword = await bcrypt.hash(password, 10);
     const user = new ContractorUser({
+
       name,
       email,
       password,
@@ -29,11 +31,17 @@ exports.contractorSignup = async (req, res) => {
     });
     await user.save();
 
-    await sendVerificationEmail(email, emailVerificationToken);
-
+    const emailSent= await sendVerificationEmail(email, emailVerificationToken);
+    
     const token = generateToken({ id: user._id });
     res
       .cookie("authToken", token, {
+        httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: "strict", // Prevent CSRF attacks
+        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+      })
+      .cookie("role", "Contractor", {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
@@ -83,6 +91,12 @@ exports.contracteeSignup = async (req, res) => {
         sameSite: "strict", // Prevent CSRF attacks
         maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
       })
+      .cookie("role", "Contractee", {
+        httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: "strict", // Prevent CSRF attacks
+        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+      })
       .status(201)
       .json({
         message: "User registered successfully, please verify your email",
@@ -95,6 +109,7 @@ exports.contracteeSignup = async (req, res) => {
 
 // Login Controller
 exports.contracteeLogin = async (req, res) => {
+    console.log(req.path);
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -115,6 +130,12 @@ exports.contracteeLogin = async (req, res) => {
     const token = generateToken({ id: user._id });
     res
       .cookie("authToken", token, {
+        httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: "strict", // Prevent CSRF attacks
+        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+      })
+      .cookie("role", "Contractee", {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
@@ -155,6 +176,12 @@ exports.contractorLogin = async (req, res) => {
         sameSite: "strict", // Prevent CSRF attacks
         maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
       })
+      .cookie("role", "Contractor", {
+        httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: "strict", // Prevent CSRF attacks
+        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+      })
       .status(200)
       .json({ message: "Login successful", token });
     console.log(token);
@@ -164,27 +191,3 @@ exports.contractorLogin = async (req, res) => {
   }
 };
 
-//send verification email
-const sendVerificationEmail = async (email, verificationCode) => {
-  console.log(process.env.EMAIL, process.env.EMAIL_PASSWORD);
-  const transporter = nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-      user: process.env.EMAIL,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL,
-    to: email,
-    subject: "Your Email Verification Code",
-    html: `
-        <h1>Email Verification</h1>
-        <p>Your verification code is: <b>${verificationCode}</b></p>
-        <p>Please enter this code to verify your email address.</p>
-      `,
-  };
-
-  await transporter.sendMail(mailOptions);
-};

@@ -26,19 +26,19 @@ contractorUserSchema.pre("save", async function (next) {
 });
 
 const contracteeUserSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    dob: { type: Date },
-    gender: { type: String },
-    address: { type: String },
-    pincode: { type: Number },
-    city: { type: String },
-    state: { type: String },
-    emailVerified: { type: Boolean, default: false },
-    emailVerificationToken: { type: String },
-  },
+    {
+        name: { type: String, required: true },
+        email: { type: String, required: true, unique: true },
+        password: { type: String, required: true },
+        dob: { type: Date },
+        gender: { type: String, default: null  },
+        address: { type: String, default: null  },
+        pincode: { type: Number, default: null  },
+        city: { type: String, default: null  },
+        state: { type: String, default: null  },
+        emailVerified: { type: Boolean, default: false },
+        emailVerificationToken: { type: String },
+      },
   { timestamps: true }
 );
 
