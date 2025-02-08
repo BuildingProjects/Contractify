@@ -9,7 +9,7 @@ const nodemailer = require('nodemailer');
    
   
       // Find user by email and verification code
-      const user = await ContractorUser.findOne({ email });
+      const user = await ContractorUser.findById(req.user.id);
       console.log(user);
       if (user.emailVerificationToken !== code) {
         return res.status(400).json({ message: 'Invalid verification code or email' });
@@ -32,13 +32,18 @@ const nodemailer = require('nodemailer');
   
   exports.verifyContracteeEmail = async (req, res) => {
     try {
-      const { email, code } = req.body;
+        console.log(req);
+       const { email, code } = req.body;
+   
   
       // Find user by email and verification code
-      const user = await ContracteeUser.findOne({ email});
+      const user = await ContracteeUser.findById(req.user.id);
+      console.log(user);
       if (user.emailVerificationToken !== code) {
         return res.status(400).json({ message: 'Invalid verification code or email' });
       }
+
+      console.log(user);
   
       // Verify user
       user.emailVerified = true;
@@ -51,4 +56,3 @@ const nodemailer = require('nodemailer');
       res.status(500).json({ message: 'Internal server error' });
     }
   };
-  

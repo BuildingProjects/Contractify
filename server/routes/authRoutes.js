@@ -1,6 +1,8 @@
 const express = require('express');
 const { contractorSignup , contracteeSignup, contracteeLogin , contractorLogin } = require('../controllers/authController');
 const { verifyContractorEmail, verifyContracteeEmail } = require('../controllers/emailverificationController');
+const { resendContractorVerificationMail, resendContracteeVerificationMail } = require('../controllers/resendVerficationMailController');
+const { verifyToken } = require('../utils/jwtHelper');
 
 
 const router = express.Router();
@@ -9,8 +11,10 @@ router.post('/contractorSignup', contractorSignup);
 router.post('/contracteeSignup', contracteeSignup);
 router.post('/contractorLogin', contractorLogin);
 router.post('/contracteeLogin', contracteeLogin);
-router.post('/verifyContractorEmail', verifyContractorEmail);
-router.post('/verifyContracteeEmail', verifyContracteeEmail);
+router.post('/verifyContractorEmail', verifyToken, verifyContractorEmail);
+router.post('/verifyContracteeEmail', verifyToken, verifyContracteeEmail);
+router.get('/resendContractorVerificationMail',verifyToken, resendContractorVerificationMail);
+router.get('/resendContracteeVerificationMail',verifyToken, resendContracteeVerificationMail);
 
 
 module.exports = router;
