@@ -111,7 +111,7 @@ export default function SignupPage() {
           localStorage.setItem("authToken", otpData.token);
         }
 
-        router.push("/dashboard");
+        router.push("/home");
       } catch (err) {
         setError(err.message || "OTP verification failed");
       } finally {

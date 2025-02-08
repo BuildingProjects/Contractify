@@ -133,7 +133,7 @@ export default function LoginPage() {
         localStorage.setItem("userType", data.userType);
       }
 
-      router.push("/dashboard");
+      router.push("/home");
     } catch (err) {
       setApiError("Network error. Please check your connection and try again.");
     } finally {
