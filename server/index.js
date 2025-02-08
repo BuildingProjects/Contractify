@@ -27,6 +27,14 @@ app.use(
   })
 );
 
+// CORS Middleware
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Adjust to your frontend URL
+    methods: ["GET", "POST"],
+  })
+);
+
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
