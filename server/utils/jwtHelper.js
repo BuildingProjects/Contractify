@@ -12,27 +12,25 @@ module.exports = {
 module.exports.verifyToken = async (req, res, next) => {
   try {
     const token = req.cookies.authToken; // Retrieve token from the cookie
-    const role = req.cookies.role;
     console.log("Token:", token);
     if (!token) {
       return res
         .status(401)
         .json({ message: "Access denied. No token provided." });
     }
-    if (!role) {
-      return res
-        .status(401)
-        .json({ message: "Access denied. No role provided." });
-    }
+    // if (!role) {
+    //   return res
+    //     .status(401)
+    //     .json({ message: "Access denied. No role provided." });
+    // }
 
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded; // Add user data to request object
-    req.role = role;
     var User = null;
-    if (role === "Contractor") {
+    if (req.user.role === "Contractor") {
         User = await  ContractorUser.findById(req.user.id);
-    } else if (role === "Contractee") {
+    } else if (req.user.role === "Contractee") {
         User = await  ContracteeUser.findById(req.user.id);
     }
     if (!User) {

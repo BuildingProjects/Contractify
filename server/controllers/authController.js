@@ -33,15 +33,9 @@ exports.contractorSignup = async (req, res) => {
 
     const emailSent= await sendVerificationEmail(email, emailVerificationToken);
     
-    const token = generateToken({ id: user._id });
+    const token = generateToken({ id: user._id, email: email, role: "Contractor" });
     res
       .cookie("authToken", token, {
-        httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        sameSite: "strict", // Prevent CSRF attacks
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
-      })
-      .cookie("role", "Contractor", {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
@@ -83,15 +77,9 @@ exports.contracteeSignup = async (req, res) => {
 
     await sendVerificationEmail(email, emailVerificationToken);
 
-    const token = generateToken({ id: user._id });
+    const token = generateToken({ id: user._id , email: email, role: "Contractee"});
     res
       .cookie("authToken", token, {
-        httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        sameSite: "strict", // Prevent CSRF attacks
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
-      })
-      .cookie("role", "Contractee", {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
@@ -127,15 +115,9 @@ exports.contracteeLogin = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const token = generateToken({ id: user._id });
+    const token = generateToken({ id: user._id , email: email, role: "Contractee"});
     res
       .cookie("authToken", token, {
-        httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        sameSite: "strict", // Prevent CSRF attacks
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
-      })
-      .cookie("role", "Contractee", {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
@@ -168,15 +150,9 @@ exports.contractorLogin = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const token = generateToken({ id: user._id });
+    const token = generateToken({ id: user._id , email: email, role: "Contractor"});
     res
       .cookie("authToken", token, {
-        httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        sameSite: "strict", // Prevent CSRF attacks
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
-      })
-      .cookie("role", "Contractor", {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
