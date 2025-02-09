@@ -10,7 +10,7 @@ const ContractSchema = new mongoose.Schema({
     type: String,
     enum: [
       "Pending",
-      "Acccepted",
+      "Accepted",
       "Rejected",
       "Signed by Contractor",
       "Signed by Contractee",
@@ -20,6 +20,14 @@ const ContractSchema = new mongoose.Schema({
     default: "Pending",
   },
   signedBy: { type: Array, default: [] }, // Stores who has signed (contractor, contractee)
+  contractorSignature: {
+    digital: { type: String, default: "" }, // Store base64 digital signature
+    photo: { type: String, default: "" }, // Store URL or base64 of photo signature
+  },
+  contracteeSignature: {
+    digital: { type: String, default: "" },
+    photo: { type: String, default: "" },
+  },
   dynamicFields: { type: Object, default: {} }, // Stores variable fields
 });
 
