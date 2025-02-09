@@ -39,11 +39,13 @@ export default function SignupPage() {
       // localStorage.removeItem("userType");
     }
   }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-    console.log("user Type:", formData.userType);
+
+    console.log("User Type:", formData.userType);
 
     if (stage === "signup") {
       if (formData.password !== formData.confirmPassword) {
@@ -73,8 +75,11 @@ export default function SignupPage() {
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.message || "Signup failed");
+          throw new Error(data.error || "Signup failed");
         }
+
+        // Notify the user that an email has been sent
+        alert("Verification code sent to your email. Please enter the OTP.");
 
         // Move to OTP stage
         setStage("otp");
@@ -90,6 +95,7 @@ export default function SignupPage() {
           formData.userType === "contractor"
             ? "http://localhost:5000/api/auth/verifyContractorEmail"
             : "http://localhost:5000/api/auth/verifyContracteeEmail";
+
         const otpRes = await fetch(apiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -100,17 +106,9 @@ export default function SignupPage() {
         });
 
         const otpData = await otpRes.json();
-
-        if (!otpRes.ok) {
-          throw new Error(otpData.message || "OTP verification failed");
-        }
-
-        // OTP verified successfully
-        if (otpData.token) {
-          // Store token in localStorage
-          localStorage.setItem("authToken", otpData.token);
-        }
-
+        
+        // Successful OTP verification
+        alert("Email verified successfully!");
         router.push("/dashboard");
       } catch (err) {
         setError(err.message || "OTP verification failed");
