@@ -1,7 +1,8 @@
 const { ContractorUser, ContracteeUser } = require("../models/User");
 const { generateToken } = require("../utils/jwtHelper");
+const { sendVerificationEmail } = require("./sendVerificationMailController");
+
 const bcrypt = require("bcrypt");
-const nodemailer = require("nodemailer");
 
 // Signup Controller
 exports.contractorSignup = async (req, res) => {
@@ -22,6 +23,7 @@ exports.contractorSignup = async (req, res) => {
 
     // const hashedPassword = await bcrypt.hash(password, 10);
     const user = new ContractorUser({
+
       name,
       email,
       password,
@@ -29,9 +31,9 @@ exports.contractorSignup = async (req, res) => {
     });
     await user.save();
 
-    await sendVerificationEmail(email, emailVerificationToken);
-
-    const token = generateToken({ id: user._id });
+    const emailSent= await sendVerificationEmail(email, emailVerificationToken);
+    
+    const token = generateToken({ id: user._id, email: email, role: "Contractor" });
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
@@ -75,7 +77,7 @@ exports.contracteeSignup = async (req, res) => {
 
     await sendVerificationEmail(email, emailVerificationToken);
 
-    const token = generateToken({ id: user._id });
+    const token = generateToken({ id: user._id , email: email, role: "Contractee"});
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
@@ -95,6 +97,7 @@ exports.contracteeSignup = async (req, res) => {
 
 // Login Controller
 exports.contracteeLogin = async (req, res) => {
+    console.log(req.path);
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -104,7 +107,7 @@ exports.contracteeLogin = async (req, res) => {
   try {
     const user = await ContracteeUser.findOne({ email });
     if (!user) {
-      return res.status(400).json({ error: "Invalid email or password" });
+      return res.status(402).json({ error: "Invalid email or password" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -112,7 +115,7 @@ exports.contracteeLogin = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const token = generateToken({ id: user._id });
+    const token = generateToken({ id: user._id , email: email, role: "Contractee"});
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
@@ -139,7 +142,7 @@ exports.contractorLogin = async (req, res) => {
   try {
     const user = await ContractorUser.findOne({ email });
     if (!user) {
-      return res.status(400).json({ error: "Invalid email or password" });
+      return res.status(402).json({ error: "Invalid email or password" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -147,7 +150,7 @@ exports.contractorLogin = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const token = generateToken({ id: user._id });
+    const token = generateToken({ id: user._id , email: email, role: "Contractor"});
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
@@ -164,27 +167,3 @@ exports.contractorLogin = async (req, res) => {
   }
 };
 
-//send verification email
-const sendVerificationEmail = async (email, verificationCode) => {
-  console.log(process.env.EMAIL, process.env.EMAIL_PASSWORD);
-  const transporter = nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-      user: process.env.EMAIL,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL,
-    to: email,
-    subject: "Your Email Verification Code",
-    html: `
-        <h1>Email Verification</h1>
-        <p>Your verification code is: <b>${verificationCode}</b></p>
-        <p>Please enter this code to verify your email address.</p>
-      `,
-  };
-
-  await transporter.sendMail(mailOptions);
-};
