@@ -14,6 +14,8 @@ const contractorUserSchema = new mongoose.Schema(
     state: { type: String, default: null  },
     emailVerified: { type: Boolean, default: false },
     emailVerificationToken: { type: String },
+    resetToken: {type: String},
+    resetTokenExpiry: {type: Date}
   },
   { timestamps: true }
 );
@@ -38,6 +40,8 @@ const contracteeUserSchema = new mongoose.Schema(
         state: { type: String, default: null  },
         emailVerified: { type: Boolean, default: false },
         emailVerificationToken: { type: String },
+        resetToken: {type: String},
+        resetTokenExpiry: {type: Date}
       },
   { timestamps: true }
 );
