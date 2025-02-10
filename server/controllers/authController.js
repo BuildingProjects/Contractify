@@ -15,7 +15,7 @@ exports.contractorSignup = async (req, res) => {
   try {
     const existingUser = await ContractorUser.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: "Email already exists" });
+      return res.status(400).json({ ok: false, error: "Email already exists" });
     }
 
     // Create a random 6-digit verification code
@@ -23,7 +23,6 @@ exports.contractorSignup = async (req, res) => {
 
     // const hashedPassword = await bcrypt.hash(password, 10);
     const user = new ContractorUser({
-
       name,
       email,
       password,
@@ -31,9 +30,16 @@ exports.contractorSignup = async (req, res) => {
     });
     await user.save();
 
-    const emailSent= await sendVerificationEmail(email, emailVerificationToken);
-    
-    const token = generateToken({ id: user._id, email: email, role: "Contractor" });
+    const emailSent = await sendVerificationEmail(
+      email,
+      emailVerificationToken
+    );
+
+    const token = generateToken({
+      id: user._id,
+      email: email,
+      role: "Contractor",
+    });
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
@@ -43,6 +49,7 @@ exports.contractorSignup = async (req, res) => {
       })
       .status(201)
       .json({
+        ok: true,
         message: "User registered successfully, please verify your email",
       });
   } catch (error) {
@@ -61,7 +68,7 @@ exports.contracteeSignup = async (req, res) => {
   try {
     const existingUser = await ContracteeUser.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: "Email already exists" });
+      return res.status(400).json({ ok: false, error: "Email already exists" });
     }
 
     const emailVerificationToken = Math.floor(100000 + Math.random() * 900000);
@@ -77,7 +84,11 @@ exports.contracteeSignup = async (req, res) => {
 
     await sendVerificationEmail(email, emailVerificationToken);
 
-    const token = generateToken({ id: user._id , email: email, role: "Contractee"});
+    const token = generateToken({
+      id: user._id,
+      email: email,
+      role: "Contractee",
+    });
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
@@ -87,6 +98,7 @@ exports.contracteeSignup = async (req, res) => {
       })
       .status(201)
       .json({
+        ok: true,
         message: "User registered successfully, please verify your email",
       });
   } catch (error) {
@@ -97,7 +109,7 @@ exports.contracteeSignup = async (req, res) => {
 
 // Login Controller
 exports.contracteeLogin = async (req, res) => {
-    console.log(req.path);
+  console.log(req.path);
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -115,7 +127,11 @@ exports.contracteeLogin = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const token = generateToken({ id: user._id , email: email, role: "Contractee"});
+    const token = generateToken({
+      id: user._id,
+      email: email,
+      role: "Contractee",
+    });
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
@@ -150,7 +166,11 @@ exports.contractorLogin = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const token = generateToken({ id: user._id , email: email, role: "Contractor"});
+    const token = generateToken({
+      id: user._id,
+      email: email,
+      role: "Contractor",
+    });
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
@@ -166,4 +186,3 @@ exports.contractorLogin = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-

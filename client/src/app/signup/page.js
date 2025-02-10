@@ -106,7 +106,7 @@ export default function SignupPage() {
         });
 
         const otpData = await otpRes.json();
-        
+
         // Successful OTP verification
         alert("Email verified successfully!");
         router.push("/dashboard");
@@ -119,30 +119,38 @@ export default function SignupPage() {
   };
 
   const handleResendOTP = async () => {
-    if (!canResend) return;
-
+    if (!formData.email) {
+      setError("Email is required to resend OTP.");
+      return;
+    }
+  
+    console.log("Resending OTP...");
+  
     try {
       const resendRes = await fetch(
-        "http://localhost:5000/api/auth/resend-otp",
+        "http://localhost:5000/api/auth/resendContractorVerificationMail",
         {
-          method: "POST",
+          method: "POST", // Change to POST as required by the backend
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: formData.email }),
+          body: JSON.stringify({ email: formData.email }), // Ensure email is sent
         }
       );
-
+  
       const resendData = await resendRes.json();
-
+  
       if (!resendRes.ok) {
-        throw new Error(resendData.message || "Failed to resend OTP");
+        throw new Error(resendData.error || "Failed to resend OTP");
       }
-
+  
+      console.log("OTP resent successfully");
       startResendTimer();
       setError("");
     } catch (err) {
+      console.error("Error resending OTP:", err.message);
       setError(err.message || "Failed to resend OTP");
     }
   };
+  
 
   const startResendTimer = () => {
     setCanResend(false);
