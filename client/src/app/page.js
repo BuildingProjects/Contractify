@@ -24,6 +24,8 @@ export default function Home() {
       <Experiences />
       <ConnectUs />
       <Footer />
+      <script src="https://cdn.botpress.cloud/webchat/v2.2/inject.js"></script>
+      <script src="https://files.bpcontent.cloud/2025/03/05/06/20250305061557-S2N1UNLI.js"></script>
     </div>
   );
 }
