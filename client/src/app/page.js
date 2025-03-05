@@ -12,7 +12,7 @@ import Footer from "./components/Footer";
 import Experiences from "./components/Experiences";
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#FAF4E7]">
+    <div className='min-h-screen bg-[#FAF4E7]'>
       <Navbar />
       <OnboardingPage />
       <AboutPage />
