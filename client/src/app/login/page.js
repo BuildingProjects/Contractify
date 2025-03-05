@@ -369,7 +369,7 @@ export default function LoginPage() {
           <div className='absolute inset-0 bg-black opacity-10'></div>
           <div className='absolute inset-0 flex flex-col justify-center p-8'>
             <div className='bg-white/80 backdrop-blur-sm p-6 rounded-2xl max-w-lg'>
-              <h2 className='text-xl font-bold mb-3'>
+              <h2 className='text-xl font-bold mb-3 text-black'>
                 Welcome Back to Contractify
               </h2>
               <p className='text-gray-600 text-sm'>
