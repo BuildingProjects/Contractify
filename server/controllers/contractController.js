@@ -83,16 +83,20 @@ const createContract = async (req, res) => {
 // Get contracts by email (contractor or contractee)
 const getContractsByEmail = async (req, res) => {
   try {
-    const { email } = req.params;
+    const { email , status } = req.params;
+    let query = {
+      $or: [{ contractorEmail: email} , { contracteeEmail: email}]
+    };
 
-    const contracts = await Contract.find({
-      $or: [{ contractorEmail: email }, { contracteeEmail: email }],
-    });
+    if(status && status !== all){
+      query.status = status;
+    }
 
+    const contracts = await Contract.find(query);
     res.status(200).json({ contracts });
   } catch (error) {
     console.error("Error fetching contracts:", error);
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error" , error});
   }
 };
 
