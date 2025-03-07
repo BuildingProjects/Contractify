@@ -25,7 +25,7 @@ import Navbar from "../components/dashboard/Navbar";
 import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(null);
   const [contracts, setContracts] = useState([]);
   const [filteredContracts, setFilteredContracts] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -41,6 +41,7 @@ export default function DashboardPage() {
         const decoded = jwtDecode(token);
         console.log("Decoded token:", decoded); // Log the full decoded token
         console.log("Token expiration:", new Date(decoded.exp * 1000)); // Check expiration
+        console.log("");
         setEmail(decoded.email);
       } catch (error) {
         console.error("Error decoding token:", error);
@@ -52,14 +53,17 @@ export default function DashboardPage() {
 
   // Separate useEffect to wait for email to be set
   useEffect(() => {
-    if (!email) return;
+    if (!email) {
+      console.log("Email is required");
+      return;
+    }
 
     console.log(
       "Making API request to:",
       `http://localhost:5000/api/contracts/getContracts/${email}`
     );
-
-    fetch(`http://localhost:5000/api/contracts/getContracts/${email}`, {
+    const uri = `http://localhost:5000/api/contracts/getContracts/${email}`;
+    fetch(uri, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

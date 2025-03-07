@@ -173,34 +173,57 @@ const createContract = async (req, res) => {
     console.log("Email sent successfully to", contracteeEmail);
 
     // Sending success response
-    res
-      .status(201)
-      .json({
-        message: "Contract created successfully",
-        contract: newContract,
-      });
+    res.status(201).json({
+      message: "Contract created successfully",
+      contract: newContract,
+    });
   } catch (error) {
     console.error("Error creating contract:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
 
-// Get contracts by email (contractor or contractee)
+// Get  contracts by email (contractor or contractee)
 const getContractsByEmail = async (req, res) => {
+  // try {
+  //   // const email = req.params;
+  //   const email = req.body;
+  //   // let email = "kumarros2002@gmail.com";
+  //   // let query = {
+  //   //   $or: [{ contractorEmail: email }, { contracteeEmail: email }],
+  //   // };
+  //   let query = {
+  //     contractorEmail: email,
+  //   };
+  //   const contracts = await Contract.find(query);
+  //   res.status(200).json({ contracts });
+  // } catch (error) {
+  //   console.error("Error fetching contracts:", error);
+  //   res.status(500).json({ message: "Server error", error });
+  // }
   try {
-    const { email, status } = req.params;
-    let query = {
-      $or: [{ contractorEmail: email }, { contracteeEmail: email }],
-    };
+    console.log("Incoming request params:", req.params); // Debug request params
 
-    if (status && status !== all) {
-      query.status = status;
+    const { email } = req.params; // Extract email from URL
+
+    if (!email) {
+      console.log("Error: Email is missing in request params"); // Debug missing email
+      return res.status(400).json({ message: "Email is required" });
     }
 
+    let query = {
+      contractorEmail: email, // Ensure it's a string
+    };
+
+    console.log("Query being executed:", query); // Debug query before execution
+
     const contracts = await Contract.find(query);
+
+    console.log("Contracts found:", contracts.length); // Debug number of contracts found
+
     res.status(200).json({ contracts });
   } catch (error) {
-    console.error("Error fetching contracts:", error);
+    console.error("Error fetching contracts:", error); // Log the actual error
     res.status(500).json({ message: "Server error", error });
   }
 };
