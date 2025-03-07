@@ -466,8 +466,8 @@ export default function DashboardPage() {
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-4'>
           {filteredContracts.map((contract) => (
             <div
-              key={contract.id}
-              className='bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all'
+              key={contract._id}
+              className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform hover:scale-102 transition-all hover:shadow-xl"
               onClick={() => openContractModal(contract)}
             >
               <div className='flex items-center justify-between p-3 sm:p-4 border-b'>
