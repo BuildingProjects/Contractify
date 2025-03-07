@@ -32,16 +32,17 @@ const sendEmail = async (to, subject, html) => {
 const createContract = async (req, res) => {
   try {
     const {
-      contractCategory,
-      contractorName,
-      contracteeName,
+      contractor,
+      contractee,
       contractorEmail,
       contracteeEmail,
+      contractCategory,
       contractValue,
-      creationDate,
+      contractCreationDate,
       startDate,
       endDate,
-      description,
+      contractDescription,
+      status,
       ...dynamicFields
     } = req.body;
 
@@ -56,18 +57,18 @@ const createContract = async (req, res) => {
     }
 
     const newContract = new Contract({
-      contractCategory,
-      contractorName,
-      contracteeName,
+      contractor,
+      contractee,
       contractorEmail,
       contracteeEmail,
+      contractCategory,
       contractValue,
-      creationDate,
-      status: "Panding",
+      contractCreationDate,
       startDate,
       endDate,
-      description,
-      ...dynamicFields,
+      contractDescription,
+      status: "Pending",
+      dynamicFields,
     });
 
     await newContract.save();
@@ -222,12 +223,10 @@ const generateContractPDF = async (req, res) => {
     const result = await generateContract(contract);
 
     if (result.success) {
-      res
-        .status(200)
-        .json({
-          message: "Contract PDF generated successfully",
-          pdfPath: result.pdfPath,
-        });
+      res.status(200).json({
+        message: "Contract PDF generated successfully",
+        pdfPath: result.pdfPath,
+      });
     } else {
       res.status(500).json({ message: result.message });
     }
