@@ -124,8 +124,9 @@ export default function CreateContractPage() {
     };
 
     console.log("Form submitted:", JSON.stringify(payload));
-
     try {
+      console.log("Submitting contract form with payload:", payload);
+
       const response = await fetch(
         "http://localhost:5000/api/contracts/createContract",
         {
@@ -137,14 +138,39 @@ export default function CreateContractPage() {
         }
       );
 
+      console.log("Response status:", response.status);
+
+      const responseData = await response.json();
+      console.log("Response data:", responseData);
+
       if (response.ok) {
         console.log("Form submitted successfully");
       } else {
-        console.error("Failed to submit form");
+        console.error("Failed to submit form. Server response:", responseData);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
     }
+    // try {
+    //   const response = await fetch(
+    //     "http://localhost:5000/api/contracts/createContract",
+    //     {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify(payload),
+    //     }
+    //   );
+
+    //   if (response.ok) {
+    //     console.log("Form submitted successfully");
+    //   } else {
+    //     console.error("Failed to submit form");
+    //   }
+    // } catch (error) {
+    //   console.error("Error submitting form:", error);
+    // }
 
     // Navigate back to dashboard
     // router.push("/dashboard");
@@ -410,14 +436,14 @@ export default function CreateContractPage() {
           {/* Description */}
           <div className='mt-6'>
             <label
-              htmlFor='description'
+              htmlFor='contractDescription'
               className='block text-sm font-medium text-gray-700 mb-1'
             >
               Description
             </label>
             <textarea
-              id='description'
-              name='description'
+              id='contractDescription'
+              name='contractDescription'
               value={formData.contractDescription}
               onChange={handleChange}
               rows={4}

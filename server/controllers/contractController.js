@@ -29,8 +29,75 @@ const sendEmail = async (to, subject, html) => {
 };
 
 // Create a new contract
+// const createContract = async (req, res) => {
+//   try {
+//     const {
+//       contractor,
+//       contractee,
+//       contractorEmail,
+//       contracteeEmail,
+//       contractCategory,
+//       contractValue,
+//       contractCreationDate,
+//       startDate,
+//       endDate,
+//       contractDescription,
+//       status,
+//       ...dynamicFields
+//     } = req.body;
+
+//     // Check if contractee email exists in the database
+//     const existingContractee = await ContracteeUser.findOne({
+//       email: contracteeEmail,
+//     });
+//     if (!existingContractee) {
+//       return res
+//         .status(404)
+//         .json({ message: "Contractee email not found in the database" });
+//     }
+
+//     const newContract = new Contract({
+//       contractor,
+//       contractee,
+//       contractorEmail,
+//       contracteeEmail,
+//       contractCategory,
+//       contractValue,
+//       contractCreationDate,
+//       startDate,
+//       endDate,
+//       contractDescription,
+//       status: "Pending",
+//       dynamicFields,
+//     });
+
+//     await newContract.save();
+
+//     //send email to contractee
+//     const acceptUrl = `${process.env.BASE_URL}/api/contracts/acceptContract/${newContract._id}`;
+//     const rejectUrl = `${process.env.BASE_URL}/api/contracts/rejectContract/${newContract._id}`;
+
+//     await sendEmail(
+//       contracteeEmail,
+//       "New Contract Issued",
+//       `<p>You have received a new contract from ${contractorEmail}.</p>
+//       <p>Click below to accept or reject:</p>
+//       <a href="${acceptUrl}">Accept Contract</a> | <a href="${rejectUrl}">Reject Contract</a>`
+//     );
+
+//     res
+//       .status(201)
+//       .json({ message: "Contract created succesfully", contract: newContract });
+//   } catch (error) {
+//     console.error("Error creating contract:", error);
+//     res.status(500).json({ message: "Server error", error });
+//   }
+// };
 const createContract = async (req, res) => {
   try {
+    console.log("Received request to create contract", req.body);
+
+    // Destructuring request body
     const {
       contractor,
       contractee,
@@ -46,16 +113,31 @@ const createContract = async (req, res) => {
       ...dynamicFields
     } = req.body;
 
+    console.log("Extracted contract details", {
+      contractor,
+      contractee,
+      contractorEmail,
+      contracteeEmail,
+    });
+
     // Check if contractee email exists in the database
+    console.log("Checking if contractee email exists in the database");
     const existingContractee = await ContracteeUser.findOne({
       email: contracteeEmail,
     });
+
     if (!existingContractee) {
+      console.warn(
+        "Contractee email not found in the database",
+        contracteeEmail
+      );
       return res
         .status(404)
         .json({ message: "Contractee email not found in the database" });
     }
 
+    // Creating new contract object
+    console.log("Creating new contract object");
     const newContract = new Contract({
       contractor,
       contractee,
@@ -67,16 +149,20 @@ const createContract = async (req, res) => {
       startDate,
       endDate,
       contractDescription,
-      status: "Pending",
+      status: "Pending", // Default status
       dynamicFields,
     });
 
+    // Saving contract to the database
+    console.log("Saving new contract to the database");
     await newContract.save();
+    console.log("Contract saved successfully", newContract._id);
 
-    //send email to contractee
+    // Sending email notification to contractee
     const acceptUrl = `${process.env.BASE_URL}/api/contracts/acceptContract/${newContract._id}`;
     const rejectUrl = `${process.env.BASE_URL}/api/contracts/rejectContract/${newContract._id}`;
 
+    console.log("Sending email to contractee", contracteeEmail);
     await sendEmail(
       contracteeEmail,
       "New Contract Issued",
@@ -84,10 +170,15 @@ const createContract = async (req, res) => {
       <p>Click below to accept or reject:</p>
       <a href="${acceptUrl}">Accept Contract</a> | <a href="${rejectUrl}">Reject Contract</a>`
     );
+    console.log("Email sent successfully to", contracteeEmail);
 
+    // Sending success response
     res
       .status(201)
-      .json({ message: "Contract created succesfully", contract: newContract });
+      .json({
+        message: "Contract created successfully",
+        contract: newContract,
+      });
   } catch (error) {
     console.error("Error creating contract:", error);
     res.status(500).json({ message: "Server error", error });
