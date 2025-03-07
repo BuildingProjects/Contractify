@@ -190,34 +190,34 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className='min-h-screen bg-gray-50'>
       <Navbar />
-      <main className="pt-16 sm:pt-20 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <main className='pt-16 sm:pt-20 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto'>
         {/* Header with responsive layout */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+        <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8'>
+          <h1 className='text-2xl sm:text-3xl font-bold text-gray-800'>
             Dashboard
           </h1>
           <button
             onClick={handleCreateContract}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg 
+            className='w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg 
           hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 
-          focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg"
+          focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg'
           >
-            <PlusIcon className="h-5 w-5" />
+            <PlusIcon className='h-5 w-5' />
             Create New Contract
           </button>
         </div>
 
         {/* Grid with responsive columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
           {/* Recent Contracts */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="flex items-center justify-between p-3 sm:p-4 border-b">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+          <div className='bg-white rounded-xl shadow-lg overflow-hidden'>
+            <div className='flex items-center justify-between p-3 sm:p-4 border-b'>
+              <h2 className='text-lg sm:text-xl font-semibold text-gray-800'>
                 Recent Contracts
               </h2>
-              <FileTextIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+              <FileTextIcon className='h-5 w-5 sm:h-6 sm:w-6 text-gray-500' />
             </div>
             <div className="divide-y">
               {contracts
@@ -269,39 +269,39 @@ export default function DashboardPage() {
           </div>
 
           {/* Contract Analytics */}
-          <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+          <div className='bg-white rounded-xl shadow-lg p-3 sm:p-4'>
+            <div className='flex items-center justify-between mb-3 sm:mb-4'>
+              <h2 className='text-lg sm:text-xl font-semibold text-gray-800'>
                 Contract Analytics
               </h2>
-              <BarChartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+              <BarChartIcon className='h-5 w-5 sm:h-6 sm:w-6 text-gray-500' />
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:gap-4">
-              <div className="bg-blue-50 p-2 sm:p-4 rounded-lg text-center">
-                <p className="text-xs sm:text-sm text-gray-600">
+            <div className='grid grid-cols-2 gap-2 sm:gap-4'>
+              <div className='bg-blue-50 p-2 sm:p-4 rounded-lg text-center'>
+                <p className='text-xs sm:text-sm text-gray-600'>
                   Total Contracts
                 </p>
-                <p className="text-xl sm:text-2xl font-bold text-blue-600">
+                <p className='text-xl sm:text-2xl font-bold text-blue-600'>
                   {contracts.length}
                 </p>
               </div>
-              <div className="bg-green-50 p-2 sm:p-4 rounded-lg text-center">
-                <p className="text-xs sm:text-sm text-gray-600">
+              <div className='bg-green-50 p-2 sm:p-4 rounded-lg text-center'>
+                <p className='text-xs sm:text-sm text-gray-600'>
                   Active Contracts
                 </p>
-                <p className="text-xl sm:text-2xl font-bold text-green-600">
+                <p className='text-xl sm:text-2xl font-bold text-green-600'>
                   {statusCounts["Signed by Both"] || 0}
                 </p>
               </div>
-              <div className="bg-yellow-50 p-2 sm:p-4 rounded-lg text-center">
-                <p className="text-xs sm:text-sm text-gray-600">Pending</p>
-                <p className="text-xl sm:text-2xl font-bold text-yellow-600">
+              <div className='bg-yellow-50 p-2 sm:p-4 rounded-lg text-center'>
+                <p className='text-xs sm:text-sm text-gray-600'>Pending</p>
+                <p className='text-xl sm:text-2xl font-bold text-yellow-600'>
                   {statusCounts["Pending"] || 0}
                 </p>
               </div>
-              <div className="bg-red-50 p-2 sm:p-4 rounded-lg text-center">
-                <p className="text-xs sm:text-sm text-gray-600">Expired</p>
-                <p className="text-xl sm:text-2xl font-bold text-red-600">
+              <div className='bg-red-50 p-2 sm:p-4 rounded-lg text-center'>
+                <p className='text-xs sm:text-sm text-gray-600'>Expired</p>
+                <p className='text-xl sm:text-2xl font-bold text-red-600'>
                   {expiredContracts}
                 </p>
               </div>
@@ -309,12 +309,12 @@ export default function DashboardPage() {
           </div>
 
           {/* Upcoming Renewals */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="flex items-center justify-between p-3 sm:p-4 border-b">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+          <div className='bg-white rounded-xl shadow-lg overflow-hidden'>
+            <div className='flex items-center justify-between p-3 sm:p-4 border-b'>
+              <h2 className='text-lg sm:text-xl font-semibold text-gray-800'>
                 Upcoming Renewals
               </h2>
-              <ClockIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+              <ClockIcon className='h-5 w-5 sm:h-6 sm:w-6 text-gray-500' />
             </div>
             <div className="divide-y">
               {contracts
@@ -364,12 +364,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Enhanced Contract Filter */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">
+        <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 mb-4'>
+          <h2 className='text-xl font-semibold text-gray-800'>
             Contract Management
           </h2>
-          <div className="w-full sm:w-auto flex items-center gap-2">
-            <div className="w-full sm:w-auto flex rounded-lg overflow-hidden shadow-md">
+          <div className='w-full sm:w-auto flex items-center gap-2'>
+            <div className='w-full sm:w-auto flex rounded-lg overflow-hidden shadow-md'>
               <button
                 className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm ${
                   filter === "All"
@@ -444,15 +444,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Display Contracts with responsive grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-4">
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-4'>
           {filteredContracts.map((contract) => (
             <div
               key={contract._id}
-              className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform hover:scale-102 transition-all hover:shadow-xl"
+              className='bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform hover:scale-102 transition-all hover:shadow-xl'
               onClick={() => openContractModal(contract)}
             >
-              <div className="flex items-center justify-between p-3 sm:p-4 border-b">
-                <h3 className="font-semibold text-gray-800 truncate max-w-[70%]">
+              <div className='flex items-center justify-between p-3 sm:p-4 border-b'>
+                <h3 className='font-semibold text-gray-800 truncate max-w-[70%]'>
                   {contract.contractCategory}
                 </h3>
                 <span
@@ -465,29 +465,29 @@ export default function DashboardPage() {
                       statusColors[contract.status].indicator
                     }`}
                   ></span>
-                  <span className="xs:inline">
+                  <span className='xs:inline'>
                     {contract.status || "Unknown"}
                   </span>
                 </span>
               </div>
-              <div className="p-3 sm:p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-xs sm:text-sm text-gray-500 truncate max-w-[70%]">
+              <div className='p-3 sm:p-4'>
+                <div className='flex justify-between items-center mb-2'>
+                  <p className='text-xs sm:text-sm text-gray-500 truncate max-w-[70%]'>
                     {contract.contractee}
                   </p>
-                  <p className="text-xs sm:text-sm font-semibold text-gray-800">
+                  <p className='text-xs sm:text-sm font-semibold text-gray-800'>
                     {contract.contractValue === "NA"
                       ? " "
                       : `₹${contract.contractValue}`}
                   </p>
                 </div>
-                <p className="text-xs text-gray-500 truncate">
+                <p className='text-xs text-gray-500 truncate'>
                   {contract.contractDescription}
                 </p>
               </div>
-              <div className="bg-gray-50 px-3 sm:px-4 py-1.5 sm:py-2 text-xs text-gray-500 flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1">
-                <span className="text-blue-600">View details</span>
-                <span className="text-xs whitespace-nowrap">
+              <div className='bg-gray-50 px-3 sm:px-4 py-1.5 sm:py-2 text-xs text-gray-500 flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1'>
+                <span className='text-blue-600'>View details</span>
+                <span className='text-xs whitespace-nowrap'>
                   {new Date(contract.startDate).toLocaleDateString("en-GB")} -{" "}
                   {new Date(contract.endDate).toLocaleDateString("en-GB")}
                 </span>
@@ -498,31 +498,31 @@ export default function DashboardPage() {
 
         {/* Contract Detail Modal - Responsive improvements */}
         {isModalOpen && selectedContract && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-0">
+          <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-0'>
             <div
-              className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+              className='bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto'
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center p-3 sm:p-4 border-b sticky top-0 bg-white z-10">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-800 truncate max-w-[80%]">
+              <div className='flex justify-between items-center p-3 sm:p-4 border-b sticky top-0 bg-white z-10'>
+                <h2 className='text-lg sm:text-xl font-bold text-gray-800 truncate max-w-[80%]'>
                   {selectedContract.contractCategory}
                 </h2>
                 <button
                   onClick={closeModal}
-                  className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                  className='text-gray-500 hover:text-gray-700 focus:outline-none'
                 >
-                  <XIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <XIcon className='h-5 w-5 sm:h-6 sm:w-6' />
                 </button>
               </div>
 
-              <div className="p-4 sm:p-6">
+              <div className='p-4 sm:p-6'>
                 {/* Status banner */}
                 <div
                   className={`mb-4 sm:mb-6 p-2 sm:p-3 rounded-lg ${
                     statusColors[selectedContract.status].bg
                   }`}
                 >
-                  <div className="flex items-center">
+                  <div className='flex items-center'>
                     <span
                       className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${
                         statusColors[selectedContract.status].indicator
@@ -539,13 +539,13 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Contract details grid - responsive layout */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="space-y-3 sm:space-y-4">
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6'>
+                  <div className='space-y-3 sm:space-y-4'>
                     <div>
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
-                        <UserIcon className="h-3 w-3 sm:h-4 sm:w-4" /> Client
+                      <h3 className='text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2'>
+                        <UserIcon className='h-3 w-3 sm:h-4 sm:w-4' /> Client
                       </h3>
-                      <p className="mt-1 text-base sm:text-lg font-medium text-gray-900 break-words">
+                      <p className='mt-1 text-base sm:text-lg font-medium text-gray-900 break-words'>
                         {selectedContract.contractee}
                       </p>
                     </div>
@@ -560,11 +560,11 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <div>
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
-                        <ClipboardIcon className="h-3 w-3 sm:h-4 sm:w-4" />{" "}
+                      <h3 className='text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2'>
+                        <ClipboardIcon className='h-3 w-3 sm:h-4 sm:w-4' />{" "}
                         Description
                       </h3>
-                      <p className="mt-1 text-xs sm:text-sm text-gray-700">
+                      <p className='mt-1 text-xs sm:text-sm text-gray-700'>
                         {selectedContract.contractDescription}
                       </p>
                     </div>
@@ -572,11 +572,11 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Action buttons - responsive layout */}
-                <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
-                  <button className="w-full sm:flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                <div className='mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4'>
+                  <button className='w-full sm:flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm'>
                     Edit Contract
                   </button>
-                  <button className="w-full sm:flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                  <button className='w-full sm:flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm'>
                     Download PDF
                   </button>
                   {/* {selectedContract.status !== "Active" && (
