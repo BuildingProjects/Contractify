@@ -5,7 +5,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 module.exports = {
   generateToken: (payload) =>
-    jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" }),
+    jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" }),
   verifyToken: (token) => jwt.verify(token, JWT_SECRET),
 };
 
@@ -29,9 +29,9 @@ module.exports.verifyToken = async (req, res, next) => {
     req.user = decoded; // Add user data to request object
     var User = null;
     if (req.user.role === "Contractor") {
-        User = await  ContractorUser.findById(req.user.id);
+      User = await ContractorUser.findById(req.user.id);
     } else if (req.user.role === "Contractee") {
-        User = await  ContracteeUser.findById(req.user.id);
+      User = await ContracteeUser.findById(req.user.id);
     }
     if (!User) {
       return res.status(404).json({ message: "User not found." });
