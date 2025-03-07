@@ -139,7 +139,6 @@ export default function CreateContractPage() {
       );
 
       console.log("Response status:", response.status);
-
       const responseData = await response.json();
       console.log("Response data:", responseData);
 
