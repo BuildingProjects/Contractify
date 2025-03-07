@@ -8,7 +8,6 @@ const path = require("path");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const puppeteer = require("puppeteer");
 
-
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const transporter = nodemailer.createTransport({
@@ -34,10 +33,15 @@ const createContract = async (req, res) => {
   try {
     const {
       contractor,
+      contractee,
       contractorEmail,
       contracteeEmail,
+      contractCategory,
+      contractValue,
+      contractCreationDate,
       startDate,
       endDate,
+      contractDescription,
       status,
       ...dynamicFields
     } = req.body;
@@ -54,10 +58,15 @@ const createContract = async (req, res) => {
 
     const newContract = new Contract({
       contractor,
+      contractee,
       contractorEmail,
       contracteeEmail,
+      contractCategory,
+      contractValue,
+      contractCreationDate,
       startDate,
       endDate,
+      contractDescription,
       status: "Pending",
       dynamicFields,
     });
@@ -88,12 +97,12 @@ const createContract = async (req, res) => {
 // Get contracts by email (contractor or contractee)
 const getContractsByEmail = async (req, res) => {
   try {
-    const { email , status } = req.params;
+    const { email, status } = req.params;
     let query = {
-      $or: [{ contractorEmail: email} , { contracteeEmail: email}]
+      $or: [{ contractorEmail: email }, { contracteeEmail: email }],
     };
 
-    if(status && status !== all){
+    if (status && status !== all) {
       query.status = status;
     }
 
@@ -101,7 +110,7 @@ const getContractsByEmail = async (req, res) => {
     res.status(200).json({ contracts });
   } catch (error) {
     console.error("Error fetching contracts:", error);
-    res.status(500).json({ message: "Server error" , error});
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -150,21 +159,19 @@ const rejectContract = async (req, res) => {
   }
 };
 
-
-
 // Function to convert markdown to HTML
 const convertMarkdownToHTML = (text) => {
-    return text.replace(/\*\*(.*?)\*\*/g, "$1");
+  return text.replace(/\*\*(.*?)\*\*/g, "$1");
 };
 
 // Generate contract PDF content from gemini
 
 async function generateContract(contractDetails) {
-    try {
-        console.log(contractDetails);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  try {
+    console.log(contractDetails);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-        const prompt = `Generate a formal contract template based on the following details:
+    const prompt = `Generate a formal contract template based on the following details:
         Contractor Email: ${contractDetails.contractorEmail}
         Contractee Email: ${contractDetails.contracteeEmail}
         Start Date: ${contractDetails.startTime}
@@ -173,43 +180,38 @@ async function generateContract(contractDetails) {
 
         Provide a structured contract format with necessary legal terms. only include the given details in the contract, do not add or assume extra aspects, do not include any note , comments or suggestions in the contract. `;
 
-        const response = await model.generateContent(prompt);
-        const contractText = response.response.text();
-        const formattedText = convertMarkdownToHTML(contractText);
+    const response = await model.generateContent(prompt);
+    const contractText = response.response.text();
+    const formattedText = convertMarkdownToHTML(contractText);
 
-        // Generate PDF from contract text
-        const pdfPath = await generatePDF(formattedText, contractDetails.contractorEmail);
+    // Generate PDF from contract text
+    const pdfPath = await generatePDF(
+      formattedText,
+      contractDetails.contractorEmail
+    );
 
-        return { success: true, pdfPath };
-
-    } catch (error) {
-        console.error("Error generating contract:", error);
-        return { success: false, message: "Failed to generate contract." };
-    }
+    return { success: true, pdfPath };
+  } catch (error) {
+    console.error("Error generating contract:", error);
+    return { success: false, message: "Failed to generate contract." };
+  }
 }
-
-
-
-
 
 // Function to generate PDF
 function generatePDF(contractText, contractorEmail) {
-    return new Promise((resolve, reject) => {
-        const doc = new PDFDocument();
-        const pdfPath = `contracts/${contractorEmail}_contract.pdf`;
-        const stream = fs.createWriteStream(pdfPath);
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument();
+    const pdfPath = `contracts/${contractorEmail}_contract.pdf`;
+    const stream = fs.createWriteStream(pdfPath);
 
-        doc.pipe(stream);
-        doc.fontSize(12).text(contractText, { align: "left" });
-        doc.end();
+    doc.pipe(stream);
+    doc.fontSize(12).text(contractText, { align: "left" });
+    doc.end();
 
-        stream.on("finish", () => resolve(pdfPath));
-        stream.on("error", (err) => reject(err));
-    });
+    stream.on("finish", () => resolve(pdfPath));
+    stream.on("error", (err) => reject(err));
+  });
 }
-
-
-
 
 const generateContractPDF = async (req, res) => {
   try {
@@ -218,14 +220,15 @@ const generateContractPDF = async (req, res) => {
       return res.status(404).json({ message: "Contract not found" });
     }
 
-
-
     const result = await generateContract(contract);
 
     if (result.success) {
-        res.status(200).json({ message: "Contract PDF generated successfully", pdfPath: result.pdfPath });
+      res.status(200).json({
+        message: "Contract PDF generated successfully",
+        pdfPath: result.pdfPath,
+      });
     } else {
-        res.status(500).json({ message: result.message });
+      res.status(500).json({ message: result.message });
     }
   } catch (error) {
     console.error("Error generating contract PDF:", error);
