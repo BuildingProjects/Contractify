@@ -14,15 +14,15 @@ export default function CreateContractPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     contractCategory: "",
-    contractorName: "",
-    contracteeName: "",
+    contractor: "",
+    contractee: "",
     contractorEmail: "",
     contracteeEmail: "",
     contractValue: "",
-    creationDate: new Date().toISOString().split("T")[0],
+    contractCreationDate: new Date().toISOString().split("T")[0],
     startDate: "",
     endDate: "",
-    description: "",
+    contractDescription: "",
   });
 
   const [customFields, setCustomFields] = useState([]);
@@ -31,11 +31,11 @@ export default function CreateContractPage() {
 
   // Count words in description
   useEffect(() => {
-    const words = formData.description.trim()
-      ? formData.description.trim().split(/\s+/).length
+    const words = formData.contractDescription.trim()
+      ? formData.contractDescription.trim().split(/\s+/).length
       : 0;
     setWordCount(words);
-  }, [formData.description]);
+  }, [formData.contractDescription]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -76,10 +76,10 @@ export default function CreateContractPage() {
     const newErrors = {};
     if (!formData.contractCategory)
       newErrors.contractCategory = "Contract category is required";
-    if (!formData.contractorName)
-      newErrors.contractorName = "Contractor name is required";
-    if (!formData.contracteeName)
-      newErrors.contracteeName = "Contractee name is required";
+    if (!formData.contractor)
+      newErrors.contractor = "Contractor name is required";
+    if (!formData.contractee)
+      newErrors.contractee = "Contractee name is required";
     if (!formData.contractorEmail)
       newErrors.contractorEmail = "Contractor email is required";
     if (!formData.contracteeEmail)
@@ -115,6 +115,7 @@ export default function CreateContractPage() {
       setErrors(newErrors);
       return;
     }
+    console.log(JSON.stringify(formData));
 
     // Form is valid, proceed with submission
     const payload = {
@@ -122,7 +123,7 @@ export default function CreateContractPage() {
       ...customFields, // Includes dynamic custom fields
     };
 
-    console.log("Form submitted:", payload);
+    console.log("Form submitted:", JSON.stringify(payload));
 
     try {
       const response = await fetch(
@@ -231,52 +232,48 @@ export default function CreateContractPage() {
             {/* Contractor Name */}
             <div>
               <label
-                htmlFor='contractorName'
+                htmlFor='contractor'
                 className='block text-sm font-medium text-gray-700 mb-1'
               >
                 Contractor Name*
               </label>
               <input
                 type='text'
-                id='contractorName'
-                name='contractorName'
-                value={formData.contractorName}
+                id='contractor'
+                name='contractor'
+                value={formData.contractor}
                 onChange={handleChange}
                 placeholder='Enter contractor name'
                 className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.contractorName ? "border-red-500" : "border-gray-300"
+                  errors.contractor ? "border-red-500" : "border-gray-300"
                 }`}
               />
-              {errors.contractorName && (
-                <p className='mt-1 text-sm text-red-500'>
-                  {errors.contractorName}
-                </p>
+              {errors.contractor && (
+                <p className='mt-1 text-sm text-red-500'>{errors.contractor}</p>
               )}
             </div>
 
             {/* Contractee Name */}
             <div>
               <label
-                htmlFor='contracteeName'
+                htmlFor='contractee'
                 className='block text-sm font-medium text-gray-700 mb-1'
               >
                 Contractee Name*
               </label>
               <input
                 type='text'
-                id='contracteeName'
-                name='contracteeName'
-                value={formData.contracteeName}
+                id='contractee'
+                name='contractee'
+                value={formData.contractee}
                 onChange={handleChange}
                 placeholder='Enter contractee name'
                 className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.contracteeName ? "border-red-500" : "border-gray-300"
+                  errors.contractee ? "border-red-500" : "border-gray-300"
                 }`}
               />
-              {errors.contracteeName && (
-                <p className='mt-1 text-sm text-red-500'>
-                  {errors.contracteeName}
-                </p>
+              {errors.contractee && (
+                <p className='mt-1 text-sm text-red-500'>{errors.contractee}</p>
               )}
             </div>
 
@@ -345,7 +342,7 @@ export default function CreateContractPage() {
                   type='date'
                   id='creationDate'
                   name='creationDate'
-                  value={formData.creationDate}
+                  value={formData.contractCreationDate}
                   onChange={handleChange}
                   readOnly
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 bg-gray-100 cursor-not-allowed'
@@ -421,7 +418,7 @@ export default function CreateContractPage() {
             <textarea
               id='description'
               name='description'
-              value={formData.description}
+              value={formData.contractDescription}
               onChange={handleChange}
               rows={4}
               placeholder='Enter contract description'
