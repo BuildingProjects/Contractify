@@ -51,32 +51,32 @@ export default function DashboardPage() {
   // Separate useEffect to wait for email to be set
   useEffect(() => {
     if (!email) return;
-  
+
     console.log(
       "Making API request to:",
       `http://localhost:5000/api/contracts/getContracts/${email}`
     );
-  
+
     fetch(`http://localhost:5000/api/contracts/getContracts/${email}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-      credentials: "include" // This is critical - it includes cookies in the request
+      credentials: "include", // This is critical - it includes cookies in the request
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         console.log("API Response:", data);
         setContracts(data.contracts);
         setFilteredContracts(data.contracts);
         calculateStatusCounts(data.contracts);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching contracts:", error);
       });
   }, [email]);
@@ -447,7 +447,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {filteredContracts.map((contract) => (
             <div
-              key={contract.id}
+              key={contract._id}
               className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform hover:scale-102 transition-all hover:shadow-xl"
               onClick={() => openContractModal(contract)}
             >
