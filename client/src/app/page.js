@@ -12,7 +12,7 @@ import Footer from "./components/Footer";
 import Experiences from "./components/Experiences";
 export default function Home() {
   return (
-    <div className='min-h-screen bg-[#FAF4E7]'>
+    <div className="min-h-screen bg-[#FAF4E7]">
       <Navbar />
       <OnboardingPage />
       <AboutPage />
@@ -26,6 +26,7 @@ export default function Home() {
       <Footer />
       <script src="https://cdn.botpress.cloud/webchat/v2.2/inject.js"></script>
       <script src="https://files.bpcontent.cloud/2025/03/05/06/20250305061557-S2N1UNLI.js"></script>
+      
     </div>
   );
 }

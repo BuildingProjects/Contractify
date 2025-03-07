@@ -39,7 +39,7 @@ exports.contractorSignup = async (req, res) => {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+        maxAge: 24 * 60 * 60 * 1000, // 1 hour in milliseconds
       })
       .status(201)
       .json({
@@ -83,7 +83,7 @@ exports.contracteeSignup = async (req, res) => {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+        maxAge: 24 * 60 * 60 * 1000, 
       })
       .status(201)
       .json({
@@ -121,7 +121,7 @@ exports.contracteeLogin = async (req, res) => {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+        maxAge: 24 * 60 * 60 * 1000, // 1 hour in milliseconds
       })
       .status(200)
       .json({ message: "Login successful", token });
@@ -156,7 +156,7 @@ exports.contractorLogin = async (req, res) => {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+        maxAge: 24 * 60 * 60 * 1000, // 1 hour in milliseconds
       })
       .status(200)
       .json({ message: "Login successful", token });

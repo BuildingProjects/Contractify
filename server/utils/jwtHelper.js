@@ -5,14 +5,14 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 module.exports = {
   generateToken: (payload) =>
-    jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" }),
+    jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" }), 
   verifyToken: (token) => jwt.verify(token, JWT_SECRET),
 };
 
 module.exports.verifyToken = async (req, res, next) => {
   try {
     const token = req.cookies.authToken; // Retrieve token from the cookie
-    console.log("Token:", token);
+    // console.log("Token:", token);
     if (!token) {
       return res
         .status(401)
@@ -29,14 +29,14 @@ module.exports.verifyToken = async (req, res, next) => {
     req.user = decoded; // Add user data to request object
     var User = null;
     if (req.user.role === "Contractor") {
-        User = await  ContractorUser.findById(req.user.id);
+      User = await ContractorUser.findById(req.user.id);
     } else if (req.user.role === "Contractee") {
-        User = await  ContracteeUser.findById(req.user.id);
+      User = await ContracteeUser.findById(req.user.id);
     }
     if (!User) {
       return res.status(404).json({ message: "User not found." });
     }
-    console.log("user Data ->" + User);
+    // console.log("user Data ->" + User);
     if (
       req.path != "/verifyContractorEmail" &&
       req.path != "/verifyContracteeEmail" &&
