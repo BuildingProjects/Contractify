@@ -20,6 +20,7 @@ const ContractSchema = new mongoose.Schema({
       "Signed by Contractee",
       "Signed by Both",
       "Ongoing",
+        "Expired"
     ],
     default: "Pending",
   },

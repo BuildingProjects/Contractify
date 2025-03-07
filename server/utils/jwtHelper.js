@@ -12,7 +12,7 @@ module.exports = {
 module.exports.verifyToken = async (req, res, next) => {
   try {
     const token = req.cookies.authToken; // Retrieve token from the cookie
-    console.log("Token:", token);
+    // console.log("Token:", token);
     if (!token) {
       return res
         .status(401)
@@ -36,7 +36,7 @@ module.exports.verifyToken = async (req, res, next) => {
     if (!User) {
       return res.status(404).json({ message: "User not found." });
     }
-    console.log("user Data ->" + User);
+    // console.log("user Data ->" + User);
     if (
       req.path != "/verifyContractorEmail" &&
       req.path != "/verifyContracteeEmail" &&
