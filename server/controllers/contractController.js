@@ -5,6 +5,11 @@ const { ContractorUser, ContracteeUser } = require("../models/User");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const puppeteer = require("puppeteer");
+
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -145,6 +150,67 @@ const rejectContract = async (req, res) => {
   }
 };
 
+
+
+// Function to convert markdown to HTML
+const convertMarkdownToHTML = (text) => {
+    return text.replace(/\*\*(.*?)\*\*/g, "$1");
+};
+
+// Generate contract PDF content from gemini
+
+async function generateContract(contractDetails) {
+    try {
+        console.log(contractDetails);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+        const prompt = `Generate a formal contract template based on the following details:
+        Contractor Email: ${contractDetails.contractorEmail}
+        Contractee Email: ${contractDetails.contracteeEmail}
+        Start Date: ${contractDetails.startTime}
+        End Date: ${contractDetails.endTime}
+        Additional Terms: ${JSON.stringify(contractDetails.dynamicFields)}
+
+        Provide a structured contract format with necessary legal terms. only include the given details in the contract, do not add or assume extra aspects, do not include any note , comments or suggestions in the contract. `;
+
+        const response = await model.generateContent(prompt);
+        const contractText = response.response.text();
+        const formattedText = convertMarkdownToHTML(contractText);
+
+        // Generate PDF from contract text
+        const pdfPath = await generatePDF(formattedText, contractDetails.contractorEmail);
+
+        return { success: true, pdfPath };
+
+    } catch (error) {
+        console.error("Error generating contract:", error);
+        return { success: false, message: "Failed to generate contract." };
+    }
+}
+
+
+
+
+
+// Function to generate PDF
+function generatePDF(contractText, contractorEmail) {
+    return new Promise((resolve, reject) => {
+        const doc = new PDFDocument();
+        const pdfPath = `contracts/${contractorEmail}_contract.pdf`;
+        const stream = fs.createWriteStream(pdfPath);
+
+        doc.pipe(stream);
+        doc.fontSize(12).text(contractText, { align: "left" });
+        doc.end();
+
+        stream.on("finish", () => resolve(pdfPath));
+        stream.on("error", (err) => reject(err));
+    });
+}
+
+
+
+
 const generateContractPDF = async (req, res) => {
   try {
     const contract = await Contract.findById(req.params.id);
@@ -152,149 +218,15 @@ const generateContractPDF = async (req, res) => {
       return res.status(404).json({ message: "Contract not found" });
     }
 
-    // Create contracts directory if it doesn't exist
-    const contractsDir = path.join(__dirname, "../contracts");
-    if (!fs.existsSync(contractsDir)) {
-      fs.mkdirSync(contractsDir, { recursive: true });
+
+
+    const result = await generateContract(contract);
+
+    if (result.success) {
+        res.status(200).json({ message: "Contract PDF generated successfully", pdfPath: result.pdfPath });
+    } else {
+        res.status(500).json({ message: result.message });
     }
-
-    const filePath = path.join(contractsDir, `contract_${contract._id}.pdf`);
-    const doc = new PDFDocument({ margin: 50 });
-    const writeStream = fs.createWriteStream(filePath);
-    doc.pipe(writeStream);
-
-    // **Title**
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(20)
-      .text("CONTRACT AGREEMENT", { align: "center" })
-      .moveDown(1.5);
-
-    // **Contract Details**
-    doc.font("Helvetica").fontSize(12);
-    doc.text(
-      `Contractor: ${contract.contractor} (${contract.contractorEmail})`
-    );
-    doc.text(`Contractee: ${contract.contracteeEmail}`);
-    doc.text(`Start Date: ${contract.startDate.toDateString()}`);
-    doc.text(`End Date: ${contract.endDate.toDateString()}`);
-    doc.text(`Status: ${contract.status}`);
-    doc.moveDown(1);
-
-    // **Dynamic Fields**
-    if (Object.keys(contract.dynamicFields).length > 0) {
-      doc
-        .font("Helvetica-Bold")
-        .text("Additional Details:", { underline: true });
-      doc.moveDown(0.5);
-      doc.font("Helvetica");
-      for (const [key, value] of Object.entries(contract.dynamicFields)) {
-        doc.text(`${key}: ${value}`);
-      }
-      doc.moveDown(1);
-    }
-
-    // // **Signatures Section**
-    // doc
-    //   .font("Helvetica-Bold")
-    //   .text("Signatures", { underline: true })
-    //   .moveDown(0.5);
-
-    // // **Contractor Signature**
-    // if (
-    //   contract.contractorSignature.digital ||
-    //   contract.contractorSignature.photo
-    // ) {
-    //   doc
-    //     .font("Helvetica")
-    //     .text(`Contractor: ${contract.contractor}`, { underline: true });
-
-    //   if (contract.contractorSignature.digital) {
-    //     const digitalSignaturePath = path.join(
-    //       contractsDir,
-    //       `contractor_digital_${contract._id}.png`
-    //     );
-    //     fs.writeFileSync(
-    //       digitalSignaturePath,
-    //       Buffer.from(
-    //         contract.contractorSignature.digital.split(",")[1],
-    //         "base64"
-    //       )
-    //     );
-    //     doc.image(digitalSignaturePath, { width: 150 }).moveDown(0.5);
-    //   }
-
-    //   if (contract.contractorSignature.photo) {
-    //     const photoSignaturePath = path.join(
-    //       contractsDir,
-    //       `contractor_photo_${contract._id}.png`
-    //     );
-    //     fs.writeFileSync(
-    //       photoSignaturePath,
-    //       Buffer.from(
-    //         contract.contractorSignature.photo.split(",")[1],
-    //         "base64"
-    //       )
-    //     );
-    //     doc.image(photoSignaturePath, { width: 150 }).moveDown(1);
-    //   }
-    // } else {
-    //   doc.text("Contractor Signature: Not signed").moveDown(1);
-    // }
-
-    // // **Contractee Signature**
-    // if (
-    //   contract.contracteeSignature.digital ||
-    //   contract.contracteeSignature.photo
-    // ) {
-    //   doc
-    //     .font("Helvetica")
-    //     .text(`Contractee: ${contract.contracteeEmail}`, { underline: true });
-
-    //   if (contract.contracteeSignature.digital) {
-    //     const digitalSignaturePath = path.join(
-    //       contractsDir,
-    //       `contractee_digital_${contract._id}.png`
-    //     );
-    //     fs.writeFileSync(
-    //       digitalSignaturePath,
-    //       Buffer.from(
-    //         contract.contracteeSignature.digital.split(",")[1],
-    //         "base64"
-    //       )
-    //     );
-    //     doc.image(digitalSignaturePath, { width: 150 }).moveDown(0.5);
-    //   }
-
-    //   if (contract.contracteeSignature.photo) {
-    //     const photoSignaturePath = path.join(
-    //       contractsDir,
-    //       `contractee_photo_${contract._id}.png`
-    //     );
-    //     fs.writeFileSync(
-    //       photoSignaturePath,
-    //       Buffer.from(
-    //         contract.contracteeSignature.photo.split(",")[1],
-    //         "base64"
-    //       )
-    //     );
-    //     doc.image(photoSignaturePath, { width: 150 }).moveDown(1);
-    //   }
-    // } else {
-    //   doc.text("Contractee Signature: Not signed").moveDown(1);
-    // }
-
-    // // **Finalize PDF**
-    doc.end();
-
-    writeStream.on("finish", () => {
-      res.download(filePath);
-    });
-
-    writeStream.on("error", (err) => {
-      console.error("Error writing PDF:", err);
-      res.status(500).json({ message: "Error generating PDF", error: err });
-    });
   } catch (error) {
     console.error("Error generating contract PDF:", error);
     res.status(500).json({ message: "Server error", error });
