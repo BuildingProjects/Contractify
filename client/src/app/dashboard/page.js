@@ -89,6 +89,30 @@ export default function DashboardPage() {
     console.log(contracts);
   }, [email]);
 
+  useEffect(() => {
+    console.log("Updating expired contracts...");
+
+    fetch("http://localhost:5000/api/contracts/updateContractStatusToExpired", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // Ensures cookies are sent if needed
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Expired contracts updated:", data);
+      })
+      .catch((error) => {
+        console.error("Error updating expired contracts:", error);
+      });
+  }, []);
+
   const calculateStatusCounts = (contracts) => {
     const counts = contracts.reduce((acc, contract) => {
       acc[contract.status] = (acc[contract.status] || 0) + 1;
@@ -131,123 +155,6 @@ export default function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState(null);
 
-  // Sample contract data
-  // const allContracts = [
-  //   {
-  //     id: "1",
-  //     name: "Marketing Services",
-  //     client: "Acme Corp",
-  //     value: "$50,000",
-  //     status: "Active",
-  //     startDate: "2025-01-15",
-  //     endDate: "2025-12-31",
-  //     description:
-  //       "Comprehensive marketing services including digital marketing, content creation, and campaign management.",
-  //     contactPerson: "John Smith",
-  //     contactEmail: "john@acmecorp.com",
-  //     terms: "Net 30",
-  //   },
-  //   {
-  //     id: "2",
-  //     name: "Consulting Agreement",
-  //     client: "Tech Innovations",
-  //     value: "$75,000",
-  //     status: "Pending",
-  //     startDate: "2025-03-01",
-  //     endDate: "2025-08-31",
-  //     description:
-  //       "Strategic consulting services for new product development and market analysis.",
-  //     contactPerson: "Sarah Johnson",
-  //     contactEmail: "sarah@techinnovations.com",
-  //     terms: "Net 45",
-  //   },
-  //   {
-  //     id: "3",
-  //     name: "Software License",
-  //     client: "Global Solutions",
-  //     value: "$25,000",
-  //     status: "Draft",
-  //     startDate: "2025-04-01",
-  //     endDate: "2026-03-31",
-  //     description:
-  //       "Enterprise software license for 50 users with premium support package.",
-  //     contactPerson: "Michael Chen",
-  //     contactEmail: "michael@globalsolutions.com",
-  //     terms: "Annual payment",
-  //   },
-  //   {
-  //     id: "4",
-  //     name: "Legal Agreement",
-  //     client: "Law Firm LLP",
-  //     value: "$120,000",
-  //     status: "Active",
-  //     startDate: "2025-01-01",
-  //     endDate: "2025-12-31",
-  //     description:
-  //       "Ongoing legal services and representation for corporate matters.",
-  //     contactPerson: "Elizabeth Taylor",
-  //     contactEmail: "elizabeth@lawfirm.com",
-  //     terms: "Monthly retainer",
-  //   },
-  //   {
-  //     id: "5",
-  //     name: "Freelance Contract",
-  //     client: "Startup X",
-  //     value: "$5,000",
-  //     status: "Pending",
-  //     startDate: "2025-03-15",
-  //     endDate: "2025-05-15",
-  //     description: "UI/UX design project for mobile application redesign.",
-  //     contactPerson: "David Wong",
-  //     contactEmail: "david@startupx.com",
-  //     terms: "50% upfront, 50% on completion",
-  //   },
-  // ];
-
-  // // const filteredContracts =
-  // //   filter === "All"
-  // //     ? allContracts
-  // //     : allContracts.filter((contract) => contract.status === filter);
-
-  const recentContracts = [
-    {
-      id: "1",
-      name: "Marketing Services",
-      client: "Acme Corp",
-      value: "$50,000",
-      status: "Active",
-    },
-    {
-      id: "2",
-      name: "Consulting Agreement",
-      client: "Tech Innovations",
-      value: "$75,000",
-      status: "Pending",
-    },
-    {
-      id: "3",
-      name: "Software License",
-      client: "Global Solutions",
-      value: "$25,000",
-      status: "Draft",
-    },
-  ];
-
-  const upcomingRenewals = [
-    {
-      id: "1",
-      name: "IT Support Contract",
-      client: "Enterprise Systems",
-      daysLeft: 15,
-    },
-    {
-      id: "2",
-      name: "Design Retainer",
-      client: "Creative Agency",
-      daysLeft: 22,
-    },
-  ];
-
   const openContractModal = (contract) => {
     setSelectedContract(contract);
     setIsModalOpen(true);
@@ -270,10 +177,15 @@ export default function DashboardPage() {
       text: "text-yellow-800",
       indicator: "bg-yellow-500",
     },
-    Draft: {
+    Expired: {
       bg: "bg-gray-100",
       text: "text-gray-800",
       indicator: "bg-gray-500",
+    },
+    Rejected: {
+      bg: "bg-red-100",
+      text: "text-red-800",
+      indicator: "bg-red-500",
     },
   };
 
@@ -308,42 +220,51 @@ export default function DashboardPage() {
               <FileTextIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
             </div>
             <div className="divide-y">
-              {recentContracts.map((contract) => (
-                <div
-                  key={contract.id}
-                  className="px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
-                  onClick={() =>
-                    openContractModal(
-                      allContracts.find((c) => c.id === contract.id)
-                    )
-                  }
-                >
-                  <div className="overflow-hidden">
-                    <p className="font-medium text-gray-800 truncate">
-                      {contract.name}
-                    </p>
-                    <p className="text-xs sm:text-sm text-gray-500 truncate">
-                      {contract.client}
-                    </p>
+              {contracts
+                .map((contract) => ({
+                  ...contract,
+                  startDate: new Date(contract.startDate),
+                }))
+                .sort((a, b) => b.startDate - a.startDate) // Sort by most recent start date
+                .slice(0, 3) // Show only the latest 3
+                .map((contract) => (
+                  <div
+                    key={contract._id}
+                    className="px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
+                    onClick={() => openContractModal(contract)}
+                  >
+                    <div className="overflow-hidden">
+                      <p className="font-medium text-gray-800 truncate">
+                        {contract.contractCategory || "No Category"}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-500 truncate">
+                        {contract.contractee || "No Contractee"}
+                      </p>
+                    </div>
+                    <div className="flex items-center flex-shrink-0 ml-2">
+                      <span className="text-xs sm:text-sm font-semibold mr-2 whitespace-nowrap">
+                        ₹{contract.contractValue || "N/A"}
+                      </span>
+                      <span
+                        className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs flex items-center gap-1 ${
+                          statusColors[contract.status]?.bg || "bg-gray-200"
+                        } ${
+                          statusColors[contract.status]?.text || "text-gray-800"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
+                            statusColors[contract.status]?.indicator ||
+                            "bg-gray-400"
+                          }`}
+                        ></span>
+                        <span className="hidden xs:inline">
+                          {contract.status || "Unknown"}
+                        </span>
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center flex-shrink-0 ml-2">
-                    <span className="text-xs sm:text-sm font-semibold mr-2 whitespace-nowrap">
-                      {contract.value}
-                    </span>
-                    <span
-                      className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs flex items-center gap-1 ${
-                        statusColors[contract.status].bg
-                      } ${statusColors[contract.status].text}`}
-                    ></span>
-                    <span
-                      className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
-                        statusColors[contract.status].indicator
-                      }`}
-                    ></span>
-                    <span className="hidden xs:inline">{contract.status}</span>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
 
@@ -396,35 +317,48 @@ export default function DashboardPage() {
               <ClockIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
             </div>
             <div className="divide-y">
-              {upcomingRenewals.map((renewal) => (
-                <div
-                  key={renewal.id}
-                  className="px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
-                  onClick={() =>
-                    openContractModal(
-                      allContracts.find((c) => c.id === renewal.id)
-                    )
-                  }
-                >
-                  <div className="overflow-hidden">
-                    <p className="font-medium text-gray-800 truncate">
-                      {renewal.name}
-                    </p>
-                    <p className="text-xs sm:text-sm text-gray-500 truncate">
-                      {renewal.client}
-                    </p>
-                  </div>
-                  <span
-                    className={`ml-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs whitespace-nowrap ${
-                      renewal.daysLeft <= 20
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
+              {contracts
+                .map((contract) => {
+                  const today = new Date(); // Get today's date
+                  today.setHours(0, 0, 0, 0); // Normalize to midnight for accurate comparison
+
+                  const endDate = new Date(contract.endDate);
+                  endDate.setHours(0, 0, 0, 0); // Normalize time
+
+                  const daysLeft = Math.ceil(
+                    (endDate - today) / (1000 * 60 * 60 * 24)
+                  ); // Calculate remaining days
+
+                  return { ...contract, daysLeft }; // Attach daysLeft to contract object
+                })
+                .filter((contract) => contract.daysLeft > 0) // Only contracts expiring in 30 days
+                .sort((a, b) => a.daysLeft - b.daysLeft) // Sort by nearest expiry
+                .slice(0, 3) // Show only top 3
+                .map((contract) => (
+                  <div
+                    key={contract._id}
+                    className="px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
+                    onClick={() => openContractModal(contract)}
                   >
-                    {renewal.daysLeft} days
-                  </span>
-                </div>
-              ))}
+                    <div className="overflow-hidden">
+                      <p className="font-medium text-gray-800 truncate">
+                        {contract.contractCategory || "No Category"}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-500 truncate">
+                        {contract.contractee || "No Contractee"}
+                      </p>
+                    </div>
+                    <span
+                      className={`ml-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs whitespace-nowrap ${
+                        contract.daysLeft <= 20
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {contract.daysLeft} days
+                    </span>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
