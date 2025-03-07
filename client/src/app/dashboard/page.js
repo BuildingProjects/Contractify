@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import FeaturesSlider from "../components/dashboard/FeaturesSlider";
 import Navbar from "../components/dashboard/Navbar";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
   const [email, setEmail] = useState("");
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const [filteredContracts, setFilteredContracts] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [statusCounts, setStatusCounts] = useState({});
+  const router = useRouter();
 
   // In your first useEffect where you decode the token
   useEffect(() => {
@@ -102,7 +104,8 @@ export default function DashboardPage() {
 
   const handleCreateContract = () => {
     // TODO: Implement create contract logic
-    alert("Create Contract Functionality");
+    router.push("/create-contract");
+    // alert("Create Contract Functionality");
   };
 
   const [filter, setFilter] = useState("All");
