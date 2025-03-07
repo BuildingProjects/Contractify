@@ -74,6 +74,7 @@ export default function CreateContractPage() {
 
     // Basic validation
     const newErrors = {};
+
     if (!formData.contractCategory)
       newErrors.contractCategory = "Contract category is required";
     if (!formData.contractor)
@@ -151,27 +152,6 @@ export default function CreateContractPage() {
     } catch (error) {
       console.error("Error submitting form:", error);
     }
-    // try {
-    //   const response = await fetch(
-    //     "http://localhost:5000/api/contracts/createContract",
-    //     {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify(payload),
-    //     }
-    //   );
-
-    //   if (response.ok) {
-    //     console.log("Form submitted successfully");
-    //   } else {
-    //     console.error("Failed to submit form");
-    //   }
-    // } catch (error) {
-    //   console.error("Error submitting form:", error);
-    // }
-
     // Navigate back to dashboard
     // router.push("/dashboard");
   };

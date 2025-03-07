@@ -19,6 +19,7 @@ import {
   PenToolIcon,
   ActivityIcon,
   ClipboardIcon,
+  IndianRupeeIcon,
 } from "lucide-react";
 import FeaturesSlider from "../components/dashboard/FeaturesSlider";
 import Navbar from "../components/dashboard/Navbar";
@@ -88,6 +89,30 @@ export default function DashboardPage() {
     console.log(contracts);
   }, [email]);
 
+  useEffect(() => {
+    console.log("Updating expired contracts...");
+
+    fetch("http://localhost:5000/api/contracts/updateContractStatusToExpired", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // Ensures cookies are sent if needed
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Expired contracts updated:", data);
+      })
+      .catch((error) => {
+        console.error("Error updating expired contracts:", error);
+      });
+  }, []);
+
   const calculateStatusCounts = (contracts) => {
     const counts = contracts.reduce((acc, contract) => {
       acc[contract.status] = (acc[contract.status] || 0) + 1;
@@ -130,123 +155,6 @@ export default function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState(null);
 
-  // Sample contract data
-  // const allContracts = [
-  //   {
-  //     id: "1",
-  //     name: "Marketing Services",
-  //     client: "Acme Corp",
-  //     value: "$50,000",
-  //     status: "Active",
-  //     startDate: "2025-01-15",
-  //     endDate: "2025-12-31",
-  //     description:
-  //       "Comprehensive marketing services including digital marketing, content creation, and campaign management.",
-  //     contactPerson: "John Smith",
-  //     contactEmail: "john@acmecorp.com",
-  //     terms: "Net 30",
-  //   },
-  //   {
-  //     id: "2",
-  //     name: "Consulting Agreement",
-  //     client: "Tech Innovations",
-  //     value: "$75,000",
-  //     status: "Pending",
-  //     startDate: "2025-03-01",
-  //     endDate: "2025-08-31",
-  //     description:
-  //       "Strategic consulting services for new product development and market analysis.",
-  //     contactPerson: "Sarah Johnson",
-  //     contactEmail: "sarah@techinnovations.com",
-  //     terms: "Net 45",
-  //   },
-  //   {
-  //     id: "3",
-  //     name: "Software License",
-  //     client: "Global Solutions",
-  //     value: "$25,000",
-  //     status: "Draft",
-  //     startDate: "2025-04-01",
-  //     endDate: "2026-03-31",
-  //     description:
-  //       "Enterprise software license for 50 users with premium support package.",
-  //     contactPerson: "Michael Chen",
-  //     contactEmail: "michael@globalsolutions.com",
-  //     terms: "Annual payment",
-  //   },
-  //   {
-  //     id: "4",
-  //     name: "Legal Agreement",
-  //     client: "Law Firm LLP",
-  //     value: "$120,000",
-  //     status: "Active",
-  //     startDate: "2025-01-01",
-  //     endDate: "2025-12-31",
-  //     description:
-  //       "Ongoing legal services and representation for corporate matters.",
-  //     contactPerson: "Elizabeth Taylor",
-  //     contactEmail: "elizabeth@lawfirm.com",
-  //     terms: "Monthly retainer",
-  //   },
-  //   {
-  //     id: "5",
-  //     name: "Freelance Contract",
-  //     client: "Startup X",
-  //     value: "$5,000",
-  //     status: "Pending",
-  //     startDate: "2025-03-15",
-  //     endDate: "2025-05-15",
-  //     description: "UI/UX design project for mobile application redesign.",
-  //     contactPerson: "David Wong",
-  //     contactEmail: "david@startupx.com",
-  //     terms: "50% upfront, 50% on completion",
-  //   },
-  // ];
-
-  // // const filteredContracts =
-  // //   filter === "All"
-  // //     ? allContracts
-  // //     : allContracts.filter((contract) => contract.status === filter);
-
-  const recentContracts = [
-    {
-      id: "1",
-      name: "Marketing Services",
-      client: "Acme Corp",
-      value: "$50,000",
-      status: "Active",
-    },
-    {
-      id: "2",
-      name: "Consulting Agreement",
-      client: "Tech Innovations",
-      value: "$75,000",
-      status: "Pending",
-    },
-    {
-      id: "3",
-      name: "Software License",
-      client: "Global Solutions",
-      value: "$25,000",
-      status: "Draft",
-    },
-  ];
-
-  const upcomingRenewals = [
-    {
-      id: "1",
-      name: "IT Support Contract",
-      client: "Enterprise Systems",
-      daysLeft: 15,
-    },
-    {
-      id: "2",
-      name: "Design Retainer",
-      client: "Creative Agency",
-      daysLeft: 22,
-    },
-  ];
-
   const openContractModal = (contract) => {
     setSelectedContract(contract);
     setIsModalOpen(true);
@@ -269,10 +177,15 @@ export default function DashboardPage() {
       text: "text-yellow-800",
       indicator: "bg-yellow-500",
     },
-    Draft: {
+    Expired: {
       bg: "bg-gray-100",
       text: "text-gray-800",
       indicator: "bg-gray-500",
+    },
+    Rejected: {
+      bg: "bg-red-100",
+      text: "text-red-800",
+      indicator: "bg-red-500",
     },
   };
 
@@ -306,46 +219,52 @@ export default function DashboardPage() {
               </h2>
               <FileTextIcon className='h-5 w-5 sm:h-6 sm:w-6 text-gray-500' />
             </div>
-            <div className='divide-y'>
-              {recentContracts.map((contract) => (
-                <div
-                  key={contract.id}
-                  className='px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer'
-                  onClick={() =>
-                    openContractModal(
-                      allContracts.find((c) => c.id === contract.id)
-                    )
-                  }
-                >
-                  <div className='overflow-hidden'>
-                    <p className='font-medium text-gray-800 truncate'>
-                      {contract.name}
-                    </p>
-                    <p className='text-xs sm:text-sm text-gray-500 truncate'>
-                      {contract.client}
-                    </p>
-                  </div>
-                  <div className='flex items-center flex-shrink-0 ml-2'>
-                    <span className='text-xs sm:text-sm font-semibold mr-2 whitespace-nowrap'>
-                      {contract.value}
-                    </span>
-                    <span
-                      className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs flex items-center gap-1 ${
-                        statusColors[contract.status].bg
-                      } ${statusColors[contract.status].text}`}
-                    >
-                      <span
-                        className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
-                          statusColors[contract.status].indicator
-                        }`}
-                      ></span>
-                      <span className='hidden xs:inline'>
-                        {contract.status}
+            <div className="divide-y">
+              {contracts
+                .map((contract) => ({
+                  ...contract,
+                  startDate: new Date(contract.startDate),
+                }))
+                .sort((a, b) => b.startDate - a.startDate) // Sort by most recent start date
+                .slice(0, 3) // Show only the latest 3
+                .map((contract) => (
+                  <div
+                    key={contract._id}
+                    className="px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
+                    onClick={() => openContractModal(contract)}
+                  >
+                    <div className="overflow-hidden">
+                      <p className="font-medium text-gray-800 truncate">
+                        {contract.contractCategory || "No Category"}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-500 truncate">
+                        {contract.contractee || "No Contractee"}
+                      </p>
+                    </div>
+                    <div className="flex items-center flex-shrink-0 ml-2">
+                      <span className="text-xs sm:text-sm font-semibold mr-2 whitespace-nowrap">
+                        ₹{contract.contractValue || "N/A"}
                       </span>
-                    </span>
+                      <span
+                        className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs flex items-center gap-1 ${
+                          statusColors[contract.status]?.bg || "bg-gray-200"
+                        } ${
+                          statusColors[contract.status]?.text || "text-gray-800"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
+                            statusColors[contract.status]?.indicator ||
+                            "bg-gray-400"
+                          }`}
+                        ></span>
+                        <span className="hidden xs:inline">
+                          {contract.status || "Unknown"}
+                        </span>
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
 
@@ -397,36 +316,49 @@ export default function DashboardPage() {
               </h2>
               <ClockIcon className='h-5 w-5 sm:h-6 sm:w-6 text-gray-500' />
             </div>
-            <div className='divide-y'>
-              {upcomingRenewals.map((renewal) => (
-                <div
-                  key={renewal.id}
-                  className='px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer'
-                  onClick={() =>
-                    openContractModal(
-                      allContracts.find((c) => c.id === renewal.id)
-                    )
-                  }
-                >
-                  <div className='overflow-hidden'>
-                    <p className='font-medium text-gray-800 truncate'>
-                      {renewal.name}
-                    </p>
-                    <p className='text-xs sm:text-sm text-gray-500 truncate'>
-                      {renewal.client}
-                    </p>
-                  </div>
-                  <span
-                    className={`ml-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs whitespace-nowrap ${
-                      renewal.daysLeft <= 20
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
+            <div className="divide-y">
+              {contracts
+                .map((contract) => {
+                  const today = new Date(); // Get today's date
+                  today.setHours(0, 0, 0, 0); // Normalize to midnight for accurate comparison
+
+                  const endDate = new Date(contract.endDate);
+                  endDate.setHours(0, 0, 0, 0); // Normalize time
+
+                  const daysLeft = Math.ceil(
+                    (endDate - today) / (1000 * 60 * 60 * 24)
+                  ); // Calculate remaining days
+
+                  return { ...contract, daysLeft }; // Attach daysLeft to contract object
+                })
+                .filter((contract) => contract.daysLeft > 0) // Only contracts expiring in 30 days
+                .sort((a, b) => a.daysLeft - b.daysLeft) // Sort by nearest expiry
+                .slice(0, 3) // Show only top 3
+                .map((contract) => (
+                  <div
+                    key={contract._id}
+                    className="px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
+                    onClick={() => openContractModal(contract)}
                   >
-                    {renewal.daysLeft} days
-                  </span>
-                </div>
-              ))}
+                    <div className="overflow-hidden">
+                      <p className="font-medium text-gray-800 truncate">
+                        {contract.contractCategory || "No Category"}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-500 truncate">
+                        {contract.contractee || "No Contractee"}
+                      </p>
+                    </div>
+                    <span
+                      className={`ml-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs whitespace-nowrap ${
+                        contract.daysLeft <= 20
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {contract.daysLeft} days
+                    </span>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
@@ -545,7 +477,7 @@ export default function DashboardPage() {
                   </p>
                   <p className='text-xs sm:text-sm font-semibold text-gray-800'>
                     {contract.contractValue === "NA"
-                      ? "NA"
+                      ? " "
                       : `₹${contract.contractValue}`}
                   </p>
                 </div>
@@ -619,14 +551,12 @@ export default function DashboardPage() {
                     </div>
 
                     <div>
-                      <h3 className='text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2'>
-                        <DollarSignIcon className='h-3 w-3 sm:h-4 sm:w-4' />{" "}
+                      <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
+                        <IndianRupeeIcon className="h-3 w-3 sm:h-4 sm:w-4" />{" "}
                         Contract Value
                       </h3>
-                      <p className='mt-1 text-base sm:text-lg font-medium text-gray-900'>
-                        {selectedContract.contractValue === "NA"
-                          ? "NA"
-                          : `₹${selectedContract.contractValue}`}
+                      <p className="mt-1 text-base sm:text-lg font-medium text-gray-900">
+                        {selectedContract.contractValue}
                       </p>
                     </div>
                     <div>
@@ -649,73 +579,84 @@ export default function DashboardPage() {
                   <button className='w-full sm:flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm'>
                     Download PDF
                   </button>
-                  {selectedContract.status !== "Active" && (
-                    <button className='w-full sm:flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm'>
+                  {/* {selectedContract.status !== "Active" && (
+                    <button className="w-full sm:flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm">
                       Activate Contract
                     </button>
-                  )}
+                  )} */}
                 </div>
 
                 {/* Timeline section - more responsive */}
-                <div className='mt-6 sm:mt-8 pt-4 sm:pt-6 border-t'>
-                  <h3 className='text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4'>
+                <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-5">
                     Contract Timeline
                   </h3>
-                  <div className='space-y-3 sm:space-y-4'>
-                    <div className='flex items-start'>
+                  <div className="space-y-4 sm:space-y-5">
+                    {/* Contract Creation Date */}
+                    <div className="flex items-start">
                       <div>
-                        <div className='flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-100 text-green-800 mr-2 sm:mr-3'>
-                          <CheckIcon className='h-3 w-3 sm:h-4 sm:w-4' />
+                        <div className="flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-green-200 text-green-900 mr-3 sm:mr-4">
+                          <CheckIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
-                        <div className='h-full w-0.5 bg-gray-200 ml-3 sm:ml-4 mt-1'></div>
+                        <div className="h-full w-0.5 bg-gray-300 ml-4 sm:ml-5 mt-1"></div>
                       </div>
-                      <div className='flex-1'>
-                        <h4 className='text-xs sm:text-sm font-medium'>
+                      <div className="flex-1">
+                        <h4 className="text-sm sm:text-base font-semibold text-gray-700">
                           Contract Created
                         </h4>
-                        <p className='text-xs text-gray-500'>
-                          January 10, 2025
+                        <p className="text-sm sm:text-base font-medium text-gray-900">
+                          {new Date(
+                            selectedContract.contractCreationDate
+                          ).toLocaleDateString("en-GB")}
                         </p>
-                        <p className='text-xs sm:text-sm mt-1'>
+                        <p className="text-xs sm:text-sm mt-1 text-gray-600">
                           Initial contract draft created and shared with
                           stakeholders.
                         </p>
                       </div>
                     </div>
-                    <div className='flex items-start'>
+
+                    {/* Contract Start Date */}
+                    <div className="flex items-start">
                       <div>
-                        <div className='flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-100 text-blue-800 mr-2 sm:mr-3'>
-                          <PenToolIcon className='h-3 w-3 sm:h-4 sm:w-4' />
+                        <div className="flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-blue-200 text-blue-900 mr-3 sm:mr-4">
+                          <PenToolIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
-                        <div className='h-full w-0.5 bg-gray-200 ml-3 sm:ml-4 mt-1'></div>
+                        <div className="h-full w-0.5 bg-gray-300 ml-4 sm:ml-5 mt-1"></div>
                       </div>
-                      <div className='flex-1'>
-                        <h4 className='text-xs sm:text-sm font-medium'>
-                          Contract Signed
+                      <div className="flex-1">
+                        <h4 className="text-sm sm:text-base font-semibold text-gray-700">
+                          Contract Start Date
                         </h4>
-                        <p className='text-xs text-gray-500'>
-                          January 15, 2025
+                        <p className="text-sm sm:text-base font-medium text-gray-900">
+                          {new Date(
+                            selectedContract.startDate
+                          ).toLocaleDateString("en-GB")}
                         </p>
-                        <p className='text-xs sm:text-sm mt-1'>
-                          Contract signed by all parties.
+                        <p className="text-xs sm:text-sm mt-1 text-gray-600">
+                          Contract starts and becomes effective.
                         </p>
                       </div>
                     </div>
-                    <div className='flex items-start'>
+
+                    {/* Contract End Date */}
+                    <div className="flex items-start">
                       <div>
-                        <div className='flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-purple-100 text-purple-800 mr-2 sm:mr-3'>
-                          <ActivityIcon className='h-3 w-3 sm:h-4 sm:w-4' />
+                        <div className="flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-purple-200 text-purple-900 mr-3 sm:mr-4">
+                          <ActivityIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
                       </div>
-                      <div className='flex-1'>
-                        <h4 className='text-xs sm:text-sm font-medium'>
-                          Contract Active
+                      <div className="flex-1">
+                        <h4 className="text-sm sm:text-base font-semibold text-gray-700">
+                          Contract End Date
                         </h4>
-                        <p className='text-xs text-gray-500'>
-                          January 15, 2025
+                        <p className="text-sm sm:text-base font-medium text-gray-900">
+                          {new Date(
+                            selectedContract.endDate
+                          ).toLocaleDateString("en-GB")}
                         </p>
-                        <p className='text-xs sm:text-sm mt-1'>
-                          Contract is now active and in effect.
+                        <p className="text-xs sm:text-sm mt-1 text-gray-600">
+                          Contract ends and will no longer be in effect.
                         </p>
                       </div>
                     </div>
