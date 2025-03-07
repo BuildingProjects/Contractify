@@ -51,34 +51,35 @@ export default function DashboardPage() {
   // Separate useEffect to wait for email to be set
   useEffect(() => {
     if (!email) return;
-  
+
     console.log(
       "Making API request to:",
       `http://localhost:5000/api/contracts/getContracts/${email}`
     );
-  
+
     fetch(`http://localhost:5000/api/contracts/getContracts/${email}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-      credentials: "include" // This is critical - it includes cookies in the request
+      credentials: "include", // This is critical - it includes cookies in the request
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         console.log("API Response:", data);
         setContracts(data.contracts);
         setFilteredContracts(data.contracts);
         calculateStatusCounts(data.contracts);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching contracts:", error);
       });
+    console.log(contracts);
   }, [email]);
 
   const calculateStatusCounts = (contracts) => {
@@ -91,14 +92,26 @@ export default function DashboardPage() {
 
   const filterContracts = (status) => {
     setStatusFilter(status);
-    if (status === "all") {
+
+    if (status === "All") {
       setFilteredContracts(contracts);
+    } else if (status === "Active") {
+      setFilteredContracts(
+        contracts.filter((contract) => contract.status === "Ongoing")
+      );
+    } else if (status === "Expired") {
+      setFilteredContracts(
+        contracts.filter((contract) => new Date(contract.endDate) < new Date())
+      );
     } else {
       setFilteredContracts(
         contracts.filter((contract) => contract.status === status)
       );
     }
   };
+  const expiredContracts = contracts.filter(
+    (contract) => new Date(contract.endDate) < new Date()
+  ).length;
 
   const handleCreateContract = () => {
     // TODO: Implement create contract logic
@@ -258,61 +271,69 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="pt-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+      <main className="pt-16 sm:pt-20 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        {/* Header with responsive layout */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            Dashboard
+          </h1>
           <button
             onClick={handleCreateContract}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg 
-            hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 
-            focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg 
+          hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 
+          focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg"
           >
             <PlusIcon className="h-5 w-5" />
             Create New Contract
           </button>
         </div>
 
-        {/* <FeaturesSlider /> */}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        {/* Grid with responsive columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Recent Contracts */}
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-xl font-semibold text-gray-800">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
                 Recent Contracts
               </h2>
-              <FileTextIcon className="h-6 w-6 text-gray-500" />
+              <FileTextIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
             </div>
             <div className="divide-y">
               {recentContracts.map((contract) => (
                 <div
                   key={contract.id}
-                  className="px-4 py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
+                  className="px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
                   onClick={() =>
                     openContractModal(
                       allContracts.find((c) => c.id === contract.id)
                     )
                   }
                 >
-                  <div>
-                    <p className="font-medium text-gray-800">{contract.name}</p>
-                    <p className="text-sm text-gray-500">{contract.client}</p>
+                  <div className="overflow-hidden">
+                    <p className="font-medium text-gray-800 truncate">
+                      {contract.name}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 truncate">
+                      {contract.client}
+                    </p>
                   </div>
-                  <div className="flex items-center">
-                    <span className="text-sm font-semibold mr-2">
+                  <div className="flex items-center flex-shrink-0 ml-2">
+                    <span className="text-xs sm:text-sm font-semibold mr-2 whitespace-nowrap">
                       {contract.value}
                     </span>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs flex items-center gap-1 ${
+                      className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs flex items-center gap-1 ${
                         statusColors[contract.status].bg
                       } ${statusColors[contract.status].text}`}
                     >
                       <span
-                        className={`w-2 h-2 rounded-full ${
+                        className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
                           statusColors[contract.status].indicator
                         }`}
                       ></span>
-                      {contract.status}
+                      <span className="hidden xs:inline">
+                        {contract.status}
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -321,70 +342,80 @@ export default function DashboardPage() {
           </div>
 
           {/* Contract Analytics */}
-          <div className="bg-white rounded-xl shadow-lg p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">
+          <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
                 Contract Analytics
               </h2>
-              <BarChartIcon className="h-6 w-6 text-gray-500" />
+              <BarChartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg text-center">
-                <p className="text-sm text-gray-600">Total Contracts</p>
-                <p className="text-2xl font-bold text-blue-600">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
+              <div className="bg-blue-50 p-2 sm:p-4 rounded-lg text-center">
+                <p className="text-xs sm:text-sm text-gray-600">
+                  Total Contracts
+                </p>
+                <p className="text-xl sm:text-2xl font-bold text-blue-600">
                   {contracts.length}
                 </p>
               </div>
-              <div className="bg-green-50 p-4 rounded-lg text-center">
-                <p className="text-sm text-gray-600">Active Contracts</p>
-                <p className="text-2xl font-bold text-green-600">
+              <div className="bg-green-50 p-2 sm:p-4 rounded-lg text-center">
+                <p className="text-xs sm:text-sm text-gray-600">
+                  Active Contracts
+                </p>
+                <p className="text-xl sm:text-2xl font-bold text-green-600">
                   {statusCounts["Signed by Both"] || 0}
                 </p>
               </div>
-              <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">
+              <div className="bg-yellow-50 p-2 sm:p-4 rounded-lg text-center">
+                <p className="text-xs sm:text-sm text-gray-600">Pending</p>
+                <p className="text-xl sm:text-2xl font-bold text-yellow-600">
                   {statusCounts["Pending"] || 0}
                 </p>
               </div>
-              <div className="bg-red-50 p-4 rounded-lg text-center">
-                <p className="text-sm text-gray-600">Expired</p>
-                <p className="text-2xl font-bold text-red-600">7</p>
+              <div className="bg-red-50 p-2 sm:p-4 rounded-lg text-center">
+                <p className="text-xs sm:text-sm text-gray-600">Expired</p>
+                <p className="text-xl sm:text-2xl font-bold text-red-600">
+                  {expiredContracts}
+                </p>
               </div>
             </div>
           </div>
 
           {/* Upcoming Renewals */}
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-xl font-semibold text-gray-800">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
                 Upcoming Renewals
               </h2>
-              <ClockIcon className="h-6 w-6 text-gray-500" />
+              <ClockIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
             </div>
             <div className="divide-y">
               {upcomingRenewals.map((renewal) => (
                 <div
                   key={renewal.id}
-                  className="px-4 py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
+                  className="px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
                   onClick={() =>
                     openContractModal(
                       allContracts.find((c) => c.id === renewal.id)
                     )
                   }
                 >
-                  <div>
-                    <p className="font-medium text-gray-800">{renewal.name}</p>
-                    <p className="text-sm text-gray-500">{renewal.client}</p>
+                  <div className="overflow-hidden">
+                    <p className="font-medium text-gray-800 truncate">
+                      {renewal.name}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 truncate">
+                      {renewal.client}
+                    </p>
                   </div>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs ${
+                    className={`ml-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs whitespace-nowrap ${
                       renewal.daysLeft <= 20
                         ? "bg-red-100 text-red-800"
                         : "bg-yellow-100 text-yellow-800"
                     }`}
                   >
-                    {renewal.daysLeft} days left
+                    {renewal.daysLeft} days
                   </span>
                 </div>
               ))}
@@ -393,135 +424,172 @@ export default function DashboardPage() {
         </div>
 
         {/* Enhanced Contract Filter */}
-        <div className="flex justify-between items-center mt-8 mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 mb-4">
           <h2 className="text-xl font-semibold text-gray-800">
             Contract Management
           </h2>
-          <div className="flex items-center gap-2">
-            <div className="flex rounded-lg overflow-hidden shadow-md">
+          <div className="w-full sm:w-auto flex items-center gap-2">
+            <div className="w-full sm:w-auto flex rounded-lg overflow-hidden shadow-md">
               <button
-                className={`px-4 py-2 ${
+                className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm ${
                   filter === "All"
                     ? "bg-blue-600 text-white"
                     : "bg-white text-gray-700 hover:bg-gray-100"
                 } transition-colors`}
-                onClick={() => setFilter("All")}
+                onClick={() => {
+                  setFilter("All");
+                  filterContracts("All"); // Pass "All", not filter
+                }}
               >
                 All
               </button>
+
               <button
-                className={`px-4 py-2 ${
+                className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm ${
                   filter === "Active"
                     ? "bg-green-600 text-white"
                     : "bg-white text-gray-700 hover:bg-gray-100"
                 } transition-colors`}
-                onClick={() => setFilter("Active")}
+                onClick={() => {
+                  setFilter("Active");
+                  filterContracts("Active"); // Corrected from "Signed by Both"
+                }}
               >
                 Active
               </button>
+
               <button
-                className={`px-4 py-2 ${
+                className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm ${
                   filter === "Pending"
                     ? "bg-yellow-600 text-white"
                     : "bg-white text-gray-700 hover:bg-gray-100"
                 } transition-colors`}
-                onClick={() => setFilter("Pending")}
+                onClick={() => {
+                  setFilter("Pending");
+                  filterContracts("Pending"); // Pass actual status
+                }}
               >
                 Pending
               </button>
+
               <button
-                className={`px-4 py-2 ${
-                  filter === "Draft"
+                className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm ${
+                  filter === "Rejected"
+                    ? "bg-red-600 text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
+                } transition-colors`}
+                onClick={() => {
+                  setFilter("Rejected");
+                  filterContracts("Rejected");
+                }}
+              >
+                Rejected
+              </button>
+
+              <button
+                className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm ${
+                  filter === "Expired"
                     ? "bg-gray-600 text-white"
                     : "bg-white text-gray-700 hover:bg-gray-100"
                 } transition-colors`}
-                onClick={() => setFilter("Draft")}
+                onClick={() => {
+                  setFilter("Expired");
+                  filterContracts("Expired");
+                }}
               >
-                Draft
+                Expired
               </button>
             </div>
           </div>
         </div>
 
-        {/* Display Contracts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+        {/* Display Contracts with responsive grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-4">
           {filteredContracts.map((contract) => (
             <div
-              key={contract.id}
+              key={contract._id}
               className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform hover:scale-102 transition-all hover:shadow-xl"
               onClick={() => openContractModal(contract)}
             >
-              <div className="flex items-center justify-between p-4 border-b">
-                <h3 className="font-semibold text-gray-800 truncate">
-                  {contract.name}
+              <div className="flex items-center justify-between p-3 sm:p-4 border-b">
+                <h3 className="font-semibold text-gray-800 truncate max-w-[70%]">
+                  {contract.contractCategory}
                 </h3>
                 <span
-                  className={`px-2 py-1 rounded-full text-xs flex items-center gap-1 ${
+                  className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs flex items-center gap-1 whitespace-nowrap ${
                     statusColors[contract.status].bg
                   } ${statusColors[contract.status].text}`}
                 >
                   <span
-                    className={`w-2 h-2 rounded-full ${
+                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
                       statusColors[contract.status].indicator
                     }`}
                   ></span>
-                  {contract.status}
+                  <span className="xs:inline">
+                    {contract.status || "Unknown"}
+                  </span>
                 </span>
               </div>
-              <div className="p-4">
+              <div className="p-3 sm:p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-500">{contract.client}</p>
-                  <p className="text-sm font-semibold text-gray-800">
-                    {contract.value}
+                  <p className="text-xs sm:text-sm text-gray-500 truncate max-w-[70%]">
+                    {contract.contractee}
+                  </p>
+                  <p className="text-xs sm:text-sm font-semibold text-gray-800">
+                    {contract.contractValue === "NA"
+                      ? "NA"
+                      : `₹${contract.contractValue}`}
                   </p>
                 </div>
                 <p className="text-xs text-gray-500 truncate">
-                  {contract.description}
+                  {contract.contractDescription}
                 </p>
               </div>
-              <div className="bg-gray-50 px-4 py-2 text-xs text-gray-500 flex justify-between items-center">
-                <span>View details</span>
-                <span>
-                  {contract.startDate} - {contract.endDate}
+              <div className="bg-gray-50 px-3 sm:px-4 py-1.5 sm:py-2 text-xs text-gray-500 flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1">
+                <span className="text-blue-600">View details</span>
+                <span className="text-xs whitespace-nowrap">
+                  {new Date(contract.startDate).toLocaleDateString("en-GB")} -{" "}
+                  {new Date(contract.endDate).toLocaleDateString("en-GB")}
                 </span>
               </div>
             </div>
           ))}
         </div>
-        {/* Contract Detail Modal */}
+
+        {/* Contract Detail Modal - Responsive improvements */}
         {isModalOpen && selectedContract && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-0">
             <div
-              className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-screen overflow-y-auto"
+              className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
-                <h2 className="text-xl font-bold text-gray-800">
-                  {selectedContract.name}
+              <div className="flex justify-between items-center p-3 sm:p-4 border-b sticky top-0 bg-white z-10">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-800 truncate max-w-[80%]">
+                  {selectedContract.contractCategory}
                 </h2>
                 <button
                   onClick={closeModal}
                   className="text-gray-500 hover:text-gray-700 focus:outline-none"
                 >
-                  <XIcon className="h-6 w-6" />
+                  <XIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {/* Status banner */}
                 <div
-                  className={`mb-6 p-3 rounded-lg ${
+                  className={`mb-4 sm:mb-6 p-2 sm:p-3 rounded-lg ${
                     statusColors[selectedContract.status].bg
                   }`}
                 >
                   <div className="flex items-center">
                     <span
-                      className={`w-3 h-3 rounded-full ${
+                      className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${
                         statusColors[selectedContract.status].indicator
                       } mr-2`}
                     ></span>
                     <span
-                      className={`font-medium ${
+                      className={`text-sm font-medium ${
                         statusColors[selectedContract.status].text
                       }`}
                     >
@@ -530,107 +598,77 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Contract details grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
+                {/* Contract details grid - responsive layout */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                        <UserIcon className="h-4 w-4" /> Client
+                      <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
+                        <UserIcon className="h-3 w-3 sm:h-4 sm:w-4" /> Client
                       </h3>
-                      <p className="mt-1 text-lg font-medium text-gray-900">
-                        {selectedContract.client}
+                      <p className="mt-1 text-base sm:text-lg font-medium text-gray-900 break-words">
+                        {selectedContract.contractee}
                       </p>
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                        <DollarSignIcon className="h-4 w-4" /> Contract Value
+                      <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
+                        <DollarSignIcon className="h-3 w-3 sm:h-4 sm:w-4" />{" "}
+                        Contract Value
                       </h3>
-                      <p className="mt-1 text-lg font-medium text-gray-900">
-                        {selectedContract.value}
+                      <p className="mt-1 text-base sm:text-lg font-medium text-gray-900">
+                        {selectedContract.contractValue === "NA"
+                          ? "NA"
+                          : `₹${selectedContract.contractValue}`}
                       </p>
                     </div>
-
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                        <CalendarIcon className="h-4 w-4" /> Contract Period
+                      <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
+                        <ClipboardIcon className="h-3 w-3 sm:h-4 sm:w-4" />{" "}
+                        Description
                       </h3>
-                      <p className="mt-1 text-gray-900">
-                        {selectedContract.startDate} to{" "}
-                        {selectedContract.endDate}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                        <TagIcon className="h-4 w-4" /> Payment Terms
-                      </h3>
-                      <p className="mt-1 text-gray-900">
-                        {selectedContract.terms}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                        <UserIcon className="h-4 w-4" /> Contact Person
-                      </h3>
-                      <p className="mt-1 text-gray-900">
-                        {selectedContract.contactPerson}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {selectedContract.contactEmail}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                        <ClipboardIcon className="h-4 w-4" /> Description
-                      </h3>
-                      <p className="mt-1 text-gray-700">
-                        {selectedContract.description}
+                      <p className="mt-1 text-xs sm:text-sm text-gray-700">
+                        {selectedContract.contractDescription}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Action buttons */}
-                <div className="mt-8 flex flex-wrap gap-4">
-                  <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                {/* Action buttons - responsive layout */}
+                <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+                  <button className="w-full sm:flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm">
                     Edit Contract
                   </button>
-                  <button className="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button className="w-full sm:flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm">
                     Download PDF
                   </button>
                   {selectedContract.status !== "Active" && (
-                    <button className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                    <button className="w-full sm:flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm">
                       Activate Contract
                     </button>
                   )}
                 </div>
 
-                {/* Timeline section */}
-                <div className="mt-8 pt-6 border-t">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                {/* Timeline section - more responsive */}
+                <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">
                     Contract Timeline
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-start">
                       <div>
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-800 mr-3">
-                          <CheckIcon className="h-4 w-4" />
+                        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-100 text-green-800 mr-2 sm:mr-3">
+                          <CheckIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                         </div>
-                        <div className="h-full w-0.5 bg-gray-200 ml-4 mt-1"></div>
+                        <div className="h-full w-0.5 bg-gray-200 ml-3 sm:ml-4 mt-1"></div>
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-sm font-medium">
+                        <h4 className="text-xs sm:text-sm font-medium">
                           Contract Created
                         </h4>
                         <p className="text-xs text-gray-500">
                           January 10, 2025
                         </p>
-                        <p className="text-sm mt-1">
+                        <p className="text-xs sm:text-sm mt-1">
                           Initial contract draft created and shared with
                           stakeholders.
                         </p>
@@ -638,33 +676,37 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-start">
                       <div>
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 mr-3">
-                          <PenToolIcon className="h-4 w-4" />
+                        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-100 text-blue-800 mr-2 sm:mr-3">
+                          <PenToolIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                         </div>
-                        <div className="h-full w-0.5 bg-gray-200 ml-4 mt-1"></div>
+                        <div className="h-full w-0.5 bg-gray-200 ml-3 sm:ml-4 mt-1"></div>
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-sm font-medium">Contract Signed</h4>
+                        <h4 className="text-xs sm:text-sm font-medium">
+                          Contract Signed
+                        </h4>
                         <p className="text-xs text-gray-500">
                           January 15, 2025
                         </p>
-                        <p className="text-sm mt-1">
+                        <p className="text-xs sm:text-sm mt-1">
                           Contract signed by all parties.
                         </p>
                       </div>
                     </div>
                     <div className="flex items-start">
                       <div>
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-800 mr-3">
-                          <ActivityIcon className="h-4 w-4" />
+                        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-purple-100 text-purple-800 mr-2 sm:mr-3">
+                          <ActivityIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                         </div>
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-sm font-medium">Contract Active</h4>
+                        <h4 className="text-xs sm:text-sm font-medium">
+                          Contract Active
+                        </h4>
                         <p className="text-xs text-gray-500">
                           January 15, 2025
                         </p>
-                        <p className="text-sm mt-1">
+                        <p className="text-xs sm:text-sm mt-1">
                           Contract is now active and in effect.
                         </p>
                       </div>

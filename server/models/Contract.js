@@ -1,9 +1,13 @@
 const mongoose = require("mongoose");
 
 const ContractSchema = new mongoose.Schema({
+  contractCategory: { type: String, required: true },
   contractor: { type: String, required: true },
+  contractee: { type: String, required: true },
   contractorEmail: { type: String, required: true },
   contracteeEmail: { type: String, required: true },
+  contractValue: { type: String, required: true, default: "NA" },
+  contractCreationDate: { type: Date, required: true },
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
   status: {
@@ -20,6 +24,7 @@ const ContractSchema = new mongoose.Schema({
     ],
     default: "Pending",
   },
+  contractDescription: { type: String, required: true },
   signedBy: { type: Array, default: [] }, // Stores who has signed (contractor, contractee)
   contractorSignature: {
     digital: { type: String, default: "" }, // Store base64 digital signature
