@@ -24,7 +24,6 @@ import {
 import FeaturesSlider from "../components/dashboard/FeaturesSlider";
 import Navbar from "../components/dashboard/Navbar";
 import { useRouter } from "next/navigation";
-import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
   const [email, setEmail] = useState(null);
