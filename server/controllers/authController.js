@@ -23,7 +23,6 @@ exports.contractorSignup = async (req, res) => {
 
     // const hashedPassword = await bcrypt.hash(password, 10);
     const user = new ContractorUser({
-
       name,
       email,
       password,
@@ -31,9 +30,16 @@ exports.contractorSignup = async (req, res) => {
     });
     await user.save();
 
-    const emailSent= await sendVerificationEmail(email, emailVerificationToken);
-    
-    const token = generateToken({ id: user._id, email: email, role: "Contractor" });
+    const emailSent = await sendVerificationEmail(
+      email,
+      emailVerificationToken
+    );
+
+    const token = generateToken({
+      id: user._id,
+      email: email,
+      role: "Contractor",
+    });
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
@@ -47,6 +53,23 @@ exports.contractorSignup = async (req, res) => {
       });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+exports.getToken = async (req, res) => {
+  try {
+    // Retrieve token from cookies
+    const token = req.cookies.authToken;
+
+    // Check if the token exists
+    if (!token) {
+      return res.status(401).json({ error: "No token found" });
+    }
+
+    // Send the token in the response
+    res.status(200).json({ token });
+  } catch (error) {
+    console.error("Get Token Error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -77,13 +100,17 @@ exports.contracteeSignup = async (req, res) => {
 
     await sendVerificationEmail(email, emailVerificationToken);
 
-    const token = generateToken({ id: user._id , email: email, role: "Contractee"});
+    const token = generateToken({
+      id: user._id,
+      email: email,
+      role: "Contractee",
+    });
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
-        maxAge: 24 * 60 * 60 * 1000, 
+        maxAge: 24 * 60 * 60 * 1000,
       })
       .status(201)
       .json({
@@ -97,7 +124,7 @@ exports.contracteeSignup = async (req, res) => {
 
 // Login Controller
 exports.contracteeLogin = async (req, res) => {
-    console.log(req.path);
+  console.log(req.path);
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -115,7 +142,11 @@ exports.contracteeLogin = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const token = generateToken({ id: user._id , email: email, role: "Contractee"});
+    const token = generateToken({
+      id: user._id,
+      email: email,
+      role: "Contractee",
+    });
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
@@ -150,7 +181,11 @@ exports.contractorLogin = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const token = generateToken({ id: user._id , email: email, role: "Contractor"});
+    const token = generateToken({
+      id: user._id,
+      email: email,
+      role: "Contractor",
+    });
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
@@ -166,4 +201,3 @@ exports.contractorLogin = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
