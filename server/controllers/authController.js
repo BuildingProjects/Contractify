@@ -1,7 +1,6 @@
 const { ContractorUser, ContracteeUser } = require("../models/User");
 const { generateToken } = require("../utils/jwtHelper");
 const { sendVerificationEmail } = require("./sendVerificationMailController");
-
 const bcrypt = require("bcrypt");
 
 // Signup Controller
