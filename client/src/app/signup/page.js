@@ -70,6 +70,7 @@ export default function SignupPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestBody),
+          credentials: "include",
         });
 
         const data = await res.json();
@@ -104,18 +105,19 @@ export default function SignupPage() {
             email: formData.email,
             code: formData.otp,
           }),
+          credentials: "include",
         });
 
         const otpData = await otpRes.json();
 
         // Fix: Check status from `otpRes`, not `otpData`
-        // if (otpRes.status === 200) {
-        //   console.log(otpData.message);
-        //   alert("Email verified successfully!");
+        if (otpRes.status === 200) {
+          console.log(otpData.message);
+          alert("Email verified successfully!");
           router.push("/dashboard");
-        // } else {
-          // setError(otpData.message || "OTP verification failed");
-        // }
+        } else {
+          setError(otpData.message || "OTP verification failed");
+        }
       } catch (err) {
         setError(err.message || "OTP verification failed");
       } finally {
