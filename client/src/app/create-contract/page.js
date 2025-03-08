@@ -9,9 +9,12 @@ import {
   XIcon,
 } from "lucide-react";
 import Navbar from "../components/dashboard/Navbar";
+import SignatureModal from "../components/SignatureModal";
 
 export default function CreateContractPage() {
   const router = useRouter();
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [currentSignatureTarget, setCurrentSignatureTarget] = useState(null);
   const [formData, setFormData] = useState({
     contractCategory: "",
     contractor: "",
@@ -23,12 +26,32 @@ export default function CreateContractPage() {
     startDate: "",
     endDate: "",
     contractDescription: "",
+    contractorSignature: null,
+    contracteeSignature: null,
   });
 
   const [customFields, setCustomFields] = useState([]);
   const [errors, setErrors] = useState({});
   const [wordCount, setWordCount] = useState(0);
 
+  const openSignatureModal = (target) => {
+    setCurrentSignatureTarget(target);
+    setIsSignatureModalOpen(true);
+  };
+
+  const handleSignatureSave = (signatureData) => {
+    setFormData({
+      ...formData,
+      [`${currentSignatureTarget}Signature`]: signatureData,
+    });
+  };
+
+  const removeSignature = (target) => {
+    setFormData({
+      ...formData,
+      [`${target}Signature`]: null,
+    });
+  };
   // Count words in description
   useEffect(() => {
     const words = formData.contractDescription.trim()
@@ -52,7 +75,10 @@ export default function CreateContractPage() {
       });
     }
   };
-
+  f(!formData.contractorSignature);
+  newErrors.contractorSignature = "Contractor signature is required";
+  if (!formData.contracteeSignature)
+    newErrors.contracteeSignature = "Contractee signature is required";
   const addCustomField = () => {
     setCustomFields([...customFields, { field: "", value: "" }]);
   };
@@ -495,6 +521,86 @@ export default function CreateContractPage() {
               ))}
             </div>
           </div>
+          <div className='mt-8'>
+            <h3 className='text-lg font-medium text-gray-800 mb-4'>
+              Signatures
+            </h3>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+              {/* Contractor Signature */}
+              <div className='border rounded-lg p-4'>
+                <p className='text-sm font-medium text-gray-700 mb-2'>
+                  Contractor Signature
+                </p>
+                {formData.contractorSignature ? (
+                  <div className='relative'>
+                    <img
+                      src={formData.contractorSignature}
+                      alt='Contractor Signature'
+                      className='max-h-24 border rounded-md'
+                    />
+                    <button
+                      onClick={() => removeSignature("contractor")}
+                      className='absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600'
+                    >
+                      <XIcon className='h-4 w-4' />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type='button'
+                    onClick={() => openSignatureModal("contractor")}
+                    className='w-full h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors'
+                  >
+                    <span className='text-blue-600 font-medium'>
+                      + Add Signature
+                    </span>
+                  </button>
+                )}
+                {errors.contractorSignature && (
+                  <p className='mt-1 text-sm text-red-500'>
+                    {errors.contractorSignature}
+                  </p>
+                )}
+              </div>
+
+              {/* Contractee Signature */}
+              <div className='border rounded-lg p-4'>
+                <p className='text-sm font-medium text-gray-700 mb-2'>
+                  Contractee Signature
+                </p>
+                {formData.contracteeSignature ? (
+                  <div className='relative'>
+                    <img
+                      src={formData.contracteeSignature}
+                      alt='Contractee Signature'
+                      className='max-h-24 border rounded-md'
+                    />
+                    <button
+                      onClick={() => removeSignature("contractee")}
+                      className='absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600'
+                    >
+                      <XIcon className='h-4 w-4' />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type='button'
+                    onClick={() => openSignatureModal("contractee")}
+                    className='w-full h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors'
+                  >
+                    <span className='text-blue-600 font-medium'>
+                      + Add Signature
+                    </span>
+                  </button>
+                )}
+                {errors.contracteeSignature && (
+                  <p className='mt-1 text-sm text-red-500'>
+                    {errors.contracteeSignature}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Submit Buttons */}
           <div className='mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4'>
@@ -515,6 +621,11 @@ export default function CreateContractPage() {
           </div>
         </form>
       </main>
+      <SignatureModal
+        isOpen={isSignatureModalOpen}
+        onClose={() => setIsSignatureModalOpen(false)}
+        onSignatureSave={handleSignatureSave}
+      />
     </div>
   );
 }
