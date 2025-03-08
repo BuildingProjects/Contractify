@@ -27,7 +27,7 @@ export default function CreateContractPage() {
     endDate: "",
     contractDescription: "",
     contractorSignature: null,
-    contracteeSignature: null,
+    // contracteeSignature: null,
   });
 
   const [customFields, setCustomFields] = useState([]);
@@ -52,6 +52,7 @@ export default function CreateContractPage() {
       [`${target}Signature`]: null,
     });
   };
+
   // Count words in description
   useEffect(() => {
     const words = formData.contractDescription.trim()
@@ -75,7 +76,9 @@ export default function CreateContractPage() {
       });
     }
   };
-  f(!formData.contractorSignature);
+
+  const newErrors = {};
+  if (!formData.contractorSignature);
   newErrors.contractorSignature = "Contractor signature is required";
   if (!formData.contracteeSignature)
     newErrors.contracteeSignature = "Contractee signature is required";
@@ -564,7 +567,7 @@ export default function CreateContractPage() {
               </div>
 
               {/* Contractee Signature */}
-              <div className='border rounded-lg p-4'>
+              {/* <div className='border rounded-lg p-4'>
                 <p className='text-sm font-medium text-gray-700 mb-2'>
                   Contractee Signature
                 </p>
@@ -598,7 +601,7 @@ export default function CreateContractPage() {
                     {errors.contracteeSignature}
                   </p>
                 )}
-              </div>
+              </div> */}
             </div>
           </div>
 
