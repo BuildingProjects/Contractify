@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { XIcon, UploadIcon, PenIcon, TrashIcon } from "lucide-react";
+import { XIcon, UploadIcon, PenIcon, TrashIcon, Loader } from "lucide-react";
 
 const SignatureModal = ({ isOpen, onClose, onSave }) => {
   const [activeTab, setActiveTab] = useState("draw"); // "draw" or "upload"
   const [signature, setSignature] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(false);
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
 
@@ -71,14 +72,34 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
     }
   };
 
-  const saveSignature = () => {
-    if (signature) {
+  const saveSignature = async () => {
+    if (!signature) return;
+    setLoading(true);
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/contracts/signature",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ signature }),
+        }
+      );
 
-      /// Need to save the url from firbase  TODO!!
-      console.log(signature);
+      const data = await response.json();
 
-      onSave(signature);
-      onClose();
+      if (response.ok) {
+        console.log(data.url);
+        onSave(data.url); // Send the uploaded signature URL to parent component
+        onClose();
+      } else {
+        console.error("Upload failed:", data.error);
+      }
+    } catch (error) {
+      console.error("Error uploading signature:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,6 +125,7 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
           <button
             className='p-2 rounded-full hover:bg-gray-100 transition-colors'
             onClick={onClose}
+            disabled={loading}
           >
             <XIcon className='h-5 w-5 text-gray-500' />
           </button>
@@ -118,6 +140,7 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
                 : "text-gray-500 hover:text-gray-700"
             }`}
             onClick={() => setActiveTab("draw")}
+            disabled={loading}
           >
             <div className='flex items-center justify-center gap-2'>
               <PenIcon className='h-4 w-4' />
@@ -131,6 +154,7 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
                 : "text-gray-500 hover:text-gray-700"
             }`}
             onClick={() => setActiveTab("upload")}
+            disabled={loading}
           >
             <div className='flex items-center justify-center gap-2'>
               <UploadIcon className='h-4 w-4' />
@@ -150,6 +174,7 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
                 onMouseMove={draw}
                 onMouseLeave={finishDrawing}
                 className='w-full h-48 bg-white rounded-md'
+                style={{ pointerEvents: loading ? "none" : "auto" }}
               />
             </div>
             <div className='flex justify-between mt-2'>
@@ -159,6 +184,7 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
               <button
                 onClick={clearCanvas}
                 className='flex items-center text-sm text-red-500 hover:text-red-600'
+                disabled={loading}
               >
                 <TrashIcon className='h-4 w-4 mr-1' /> Clear
               </button>
@@ -180,6 +206,7 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
                   <button
                     onClick={() => setImagePreview(null)}
                     className='absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600'
+                    disabled={loading}
                   >
                     <TrashIcon className='h-4 w-4' />
                   </button>
@@ -193,7 +220,13 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
                   <p className='text-gray-400 text-sm mb-4'>
                     Or select a file from your computer
                   </p>
-                  <label className='inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg cursor-pointer hover:bg-blue-700 transition-colors'>
+                  <label
+                    className={`inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg ${
+                      loading
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer hover:bg-blue-700"
+                    } transition-colors`}
+                  >
                     <UploadIcon className='h-4 w-4' />
                     Browse File
                     <input
@@ -201,6 +234,7 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
                       accept='image/*'
                       onChange={handleImageUpload}
                       className='hidden'
+                      disabled={loading}
                     />
                   </label>
                 </div>
@@ -216,18 +250,30 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
         <div className='flex justify-end gap-3 mt-6'>
           <button
             onClick={onClose}
-            className='px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors'
+            className={`px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg ${
+              loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200"
+            } transition-colors`}
+            disabled={loading}
           >
             Cancel
           </button>
           <button
             onClick={saveSignature}
-            className={`px-4 py-2 bg-blue-600 text-white font-medium rounded-lg transition-colors ${
-              signature ? "hover:bg-blue-700" : "opacity-50 cursor-not-allowed"
+            className={`px-4 py-2 bg-blue-600 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
+              signature && !loading
+                ? "hover:bg-blue-700"
+                : "opacity-50 cursor-not-allowed"
             }`}
-            disabled={!signature}
+            disabled={!signature || loading}
           >
-            Save Signature
+            {loading ? (
+              <>
+                <Loader className='h-4 w-4 animate-spin' />
+                Saving...
+              </>
+            ) : (
+              "Save Signature"
+            )}
           </button>
         </div>
       </div>
