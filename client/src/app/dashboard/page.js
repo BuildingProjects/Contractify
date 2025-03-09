@@ -32,10 +32,10 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [statusCounts, setStatusCounts] = useState({});
   const router = useRouter();
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // In your first useEffect where you decode the token
   useEffect(() => {
-    fetch("http://localhost:5000/api/auth/get-token", {
+    fetch(`${API_URL}/auth/get-token`, {
       method: "GET",
       credentials: "include", // Ensure cookies are sent
     })
@@ -52,7 +52,7 @@ export default function DashboardPage() {
       })
       .catch((error) => console.error("Error fetching token:", error));
   }, []);
-
+  
   // Separate useEffect to wait for email to be set
   useEffect(() => {
     if (!email) {
@@ -62,9 +62,9 @@ export default function DashboardPage() {
 
     console.log(
       "Making API request to:",
-      `http://localhost:5000/api/contracts/getContracts/${email}`
+      `${API_URL}/contracts/getContracts/${email}`
     );
-    const uri = `http://localhost:5000/api/contracts/getContracts/${email}`;
+    const uri = `${API_URL}/contracts/getContracts/${email}`;
     fetch(uri, {
       method: "GET",
       headers: {
@@ -93,7 +93,7 @@ export default function DashboardPage() {
   useEffect(() => {
     console.log("Updating expired contracts...");
 
-    fetch("http://localhost:5000/api/contracts/updateContractStatusToExpired", {
+    fetch(`${API_URL}/contracts/updateContractStatusToExpired`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

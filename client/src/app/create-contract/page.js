@@ -157,7 +157,7 @@
 //       console.log("Submitting contract form with payload:", payload);
 
 //       const response = await fetch(
-//         "http://localhost:5000/api/contracts/createContract",
+//         `${API_URL}/contracts/createContract`,
 //         {
 //           method: "POST",
 //           headers: {
@@ -789,7 +789,7 @@ export default function CreateContractPage() {
       console.log("Submitting contract form with payload:", payload);
 
       const response = await fetch(
-        "http://localhost:5000/api/contracts/createContract",
+        `${API_URL}/contracts/createContract`,
         {
           method: "POST",
           headers: {
@@ -813,7 +813,7 @@ export default function CreateContractPage() {
       console.error("Error submitting form:", error);
     }
     // Navigate back to dashboard
-    router.push("/dashboard");
+    // router.push("/dashboard");
   };
 
   return (

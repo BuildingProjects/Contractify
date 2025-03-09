@@ -71,13 +71,13 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
       reader.readAsDataURL(file);
     }
   };
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const saveSignature = async () => {
     if (!signature) return;
     setLoading(true);
     try {
       const response = await fetch(
-        "http://localhost:5000/api/contracts/signature",
+        `${API_URL}/contracts/signature`,
         {
           method: "POST",
           headers: {
