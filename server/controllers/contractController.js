@@ -17,6 +17,37 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSKEY,
   },
 });
+const ImageKit = require("imagekit");
+const imagekit = new ImageKit({
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+});
+
+const saveSignature = async (req, res) => {
+  try {
+    const { signature } = req.body;
+
+    if (!signature) {
+      return res.status(400).json({ error: "Signature is required" });
+    }
+
+    // Upload to ImageKit
+    const uploadResponse = await imagekit.upload({
+      file: signature, // Base64 string
+      fileName: `signature_${Date.now()}.png`, // Unique filename
+      folder: "/signatures/",
+    });
+
+    res.status(200).json({
+      message: "Signature uploaded successfully",
+      url: uploadResponse.url,
+    });
+  } catch (error) {
+    console.error("Save Signature Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 //function to send email
 const sendEmail = async (to, subject, html) => {
@@ -110,6 +141,7 @@ const createContract = async (req, res) => {
       endDate,
       contractDescription,
       status,
+      contractorSignature,
       ...dynamicFields
     } = req.body;
 
@@ -149,9 +181,14 @@ const createContract = async (req, res) => {
       startDate,
       endDate,
       contractDescription,
+      contractorSignature: {
+        digital: contractorSignature?.digital || "", // Ensure valid storage
+        photo: contractorSignature?.photo || "",
+      },
       status: "Pending", // Default status
       dynamicFields,
     });
+    console.log(contractorSignature);
 
     // Saving contract to the database
     console.log("Saving new contract to the database");
@@ -441,4 +478,5 @@ module.exports = {
   generateContractPDF,
   signContractByContractor,
   signContractByContractee,
+  saveSignature,
 };

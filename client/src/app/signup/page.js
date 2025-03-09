@@ -20,7 +20,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -57,8 +57,8 @@ export default function SignupPage() {
       try {
         const apiUrl =
           formData.userType === "contractor"
-            ? "http://localhost:5000/api/auth/contractorSignup"
-            : "http://localhost:5000/api/auth/contracteeSignup";
+            ? `${API_URL}/auth/contractorSignup`
+            : `${API_URL}/auth/contracteeSignup`;
 
         const requestBody = {
           name: formData.name,
@@ -93,8 +93,8 @@ export default function SignupPage() {
       try {
         const apiUrl =
           formData.userType === "contractor"
-            ? "http://localhost:5000/api/auth/verifyContractorEmail"
-            : "http://localhost:5000/api/auth/verifyContracteeEmail";
+            ? `${API_URL}/auth/verifyContractorEmail`
+            : `${API_URL}/auth/verifyContracteeEmail`;
 
         console.log(formData.email, formData.otp);
 
@@ -130,14 +130,11 @@ export default function SignupPage() {
     if (!canResend) return;
 
     try {
-      const resendRes = await fetch(
-        "http://localhost:5000/api/auth/resend-otp",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: formData.email }),
-        }
-      );
+      const resendRes = await fetch(`${API_URL}/auth/resend-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email }),
+      });
 
       const resendData = await resendRes.json();
 
