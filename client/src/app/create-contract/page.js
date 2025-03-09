@@ -788,7 +788,7 @@ export default function CreateContractPage() {
     try {
       console.log("Submitting contract form with payload:", payload);
 
-      const response = await fetch(`${API_URL}/contracts/createContract`, {
+      const response = await fetch(`${API_URL}/api/contracts/createContract`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
