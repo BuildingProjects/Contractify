@@ -52,7 +52,7 @@ export default function DashboardPage() {
       })
       .catch((error) => console.error("Error fetching token:", error));
   }, []);
-  
+
   // Separate useEffect to wait for email to be set
   useEffect(() => {
     if (!email) {
@@ -184,6 +184,11 @@ export default function DashboardPage() {
       indicator: "bg-gray-500",
     },
     Rejected: {
+      bg: "bg-red-100",
+      text: "text-red-800",
+      indicator: "bg-red-500",
+    },
+    "Signed by Contractor": {
       bg: "bg-red-100",
       text: "text-red-800",
       indicator: "bg-red-500",
