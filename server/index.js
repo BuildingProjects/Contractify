@@ -32,7 +32,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 //for testing
-app.get("/", (req, res) => {
+app.get("/api/Api", (req, res) => {
   res.send("API is running...");
 });
 // Use routes
