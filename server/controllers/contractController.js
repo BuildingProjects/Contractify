@@ -319,7 +319,7 @@ const convertMarkdownToHTML = (text) => {
 
 async function generateContract(contractDetails) {
   try {
-    console.log(contractDetails);
+    // console.log(contractDetails);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const prompt = `Generate a formal contract template based on the following details:
@@ -338,7 +338,8 @@ async function generateContract(contractDetails) {
     // Generate PDF from contract text
     const pdfPath = await generatePDF(
       formattedText,
-      contractDetails.contractorEmail
+      contractDetails.contractorEmail,
+      contractDetails.contractorSignature.digital
     );
 
     return { success: true, pdfPath };
@@ -349,14 +350,40 @@ async function generateContract(contractDetails) {
 }
 
 // Function to generate PDF
-function generatePDF(contractText, contractorEmail) {
-  return new Promise((resolve, reject) => {
+function generatePDF(contractText, contractorEmail,signatureURL ) {
+  return new Promise(async(resolve, reject) => {
     const doc = new PDFDocument();
     const pdfPath = `contracts/${contractorEmail}_contract.pdf`;
     const stream = fs.createWriteStream(pdfPath);
 
     doc.pipe(stream);
-    doc.fontSize(12).text(contractText, { align: "left" });
+    doc.fontSize(12);
+
+    // text(contractText, { align: "left" });
+    let textLines = contractText.split("\n"); // Split contract text into lines
+    let signPosition = null; // To store position for the signature
+
+    textLines.forEach((line) => {
+      if (line.toLowerCase().includes("Contractor (Ashutosh Mishra)".toLowerCase())) {
+        signPosition = doc.y + 10; // Capture Y position for signature
+      }
+      doc.text(line, { align: "left", continued: false });
+    });
+
+    // If "Contractor Sign" was found, insert the signature image
+    if (signPosition && signatureURL) {
+      try {
+        const response = await axios.get(signatureURL, {
+          responseType: "arraybuffer",
+        });
+        const signatureBuffer = Buffer.from(response.data, "binary");
+        conole.log(signatureBuffer);
+
+        doc.image(signatureBuffer, 100, signPosition, { width: 150 }); // Adjust width as needed
+      } catch (err) {
+        console.error("Error fetching signature image:", err);
+      }
+    }
     doc.end();
 
     stream.on("finish", () => resolve(pdfPath));
