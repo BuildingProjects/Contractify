@@ -667,7 +667,7 @@ export default function CreateContractPage() {
   const [customFields, setCustomFields] = useState([]);
   const [errors, setErrors] = useState({});
   const [wordCount, setWordCount] = useState(0);
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // Count words in description
   useEffect(() => {
     const words = formData.contractDescription.trim()
@@ -788,17 +788,14 @@ export default function CreateContractPage() {
     try {
       console.log("Submitting contract form with payload:", payload);
 
-      const response = await fetch(
-        `${API_URL}/contracts/createContract`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`${API_URL}/contracts/createContract`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
 
       console.log("Response status:", response.status);
       const responseData = await response.json();
