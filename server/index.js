@@ -20,14 +20,6 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // CORS Middleware
-// app.use(
-//   cors({
-//     origin: "http://localhost:3000",
-//     methods: ["GET", "POST"],
-//   })
-// );
-
-// CORS Middleware
 app.use(
   cors({
     origin: process.env.CLIENT_URL, // Adjust to your frontend URL
@@ -35,7 +27,6 @@ app.use(
     credentials: true,
   })
 );
-
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
