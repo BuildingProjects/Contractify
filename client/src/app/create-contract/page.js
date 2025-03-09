@@ -29,7 +29,6 @@
 //     contractorSignature: null,
 //     // contracteeSignature: null,
 //   });
-
 //   const [customFields, setCustomFields] = useState([]);
 //   const [errors, setErrors] = useState({});
 //   const [wordCount, setWordCount] = useState(0);
