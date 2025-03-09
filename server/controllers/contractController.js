@@ -95,7 +95,7 @@ const sendEmail = async (to, subject, html) => {
 //       contractCategory,
 //       contractValue,
 //       contractCreationDate,
-//       startDate,
+//       startDate,s
 //       endDate,
 //       contractDescription,
 //       status: "Pending",
