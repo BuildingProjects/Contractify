@@ -7,6 +7,8 @@ const fs = require("fs");
 const path = require("path");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const puppeteer = require("puppeteer");
+const axios = require("axios");
+// const ImageKit = require("imagekit");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -329,7 +331,9 @@ async function generateContract(contractDetails) {
         End Date: ${contractDetails.endTime}
         Additional Terms: ${JSON.stringify(contractDetails.dynamicFields)}
 
-        Provide a structured contract format with necessary legal terms. only include the given details in the contract, do not add or assume extra aspects, do not include any note , comments or suggestions in the contract. `;
+        Provide a structured contract format with necessary legal terms. 
+        Only include the given details in the contract, do not add or assume extra aspects, do not include any note , comments or suggestions in the contract.
+        inportant note: do not leave the signature section  for now or any  label for "Contractor Sign" and "Contractee Sign" also no message or suggession in response `;
 
     const response = await model.generateContent(prompt);
     const contractText = response.response.text();
@@ -339,7 +343,8 @@ async function generateContract(contractDetails) {
     const pdfPath = await generatePDF(
       formattedText,
       contractDetails.contractorEmail,
-      contractDetails.contractorSignature.digital
+      contractDetails.contractorSignature.digital,
+      contractDetails.contracteeSignature.digital
     );
 
     return { success: true, pdfPath };
@@ -350,44 +355,81 @@ async function generateContract(contractDetails) {
 }
 
 // Function to generate PDF
-function generatePDF(contractText, contractorEmail,signatureURL ) {
-  return new Promise(async(resolve, reject) => {
-    const doc = new PDFDocument();
-    const pdfPath = `contracts/${contractorEmail}_contract.pdf`;
-    const stream = fs.createWriteStream(pdfPath);
+function generatePDF(
+  contractText,
+  contractorEmail,
+  ContractorSignatureURL,
+  ContracteeSignatureURL
+) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const doc = new PDFDocument();
+      let buffers = [];
 
-    doc.pipe(stream);
-    doc.fontSize(12);
+      doc.on("data", (chunk) => buffers.push(chunk));
+      doc.on("end", async () => {
+        const pdfBuffer = Buffer.concat(buffers);
 
-    // text(contractText, { align: "left" });
-    let textLines = contractText.split("\n"); // Split contract text into lines
-    let signPosition = null; // To store position for the signature
+        // Upload to ImageKit
+        try {
+          const uploadResponse = await imagekit.upload({
+            file: pdfBuffer,
+            fileName: `${contractorEmail}_contract.pdf`,
+            folder: "/contracts/",
+          });
 
-    textLines.forEach((line) => {
-      if (line.toLowerCase().includes("Contractor (Ashutosh Mishra)".toLowerCase())) {
-        signPosition = doc.y + 10; // Capture Y position for signature
+          resolve(uploadResponse.url); // Return the uploaded file URL
+        } catch (uploadError) {
+          console.error("Error uploading PDF to ImageKit:", uploadError);
+          reject(uploadError);
+        }
+      });
+
+      doc.fontSize(12).text(contractText, { align: "left" });
+
+      let textLines = contractText.split("\n");
+      let signPosition = null;
+
+      for (let line of textLines) {
+        if (line.toLowerCase().includes("contractor sign")) {
+          signPosition = doc.y;
+          break; // Ensure only one signature placement
+        }
       }
-      doc.text(line, { align: "left", continued: false });
-    });
 
-    // If "Contractor Sign" was found, insert the signature image
-    if (signPosition && signatureURL) {
-      try {
-        const response = await axios.get(signatureURL, {
-          responseType: "arraybuffer",
-        });
-        const signatureBuffer = Buffer.from(response.data, "binary");
-        conole.log(signatureBuffer);
+      if (ContractorSignatureURL) {
+        try {
+          const response = await axios.get(ContractorSignatureURL, {
+            responseType: "arraybuffer",
+          });
+          const signatureBuffer = Buffer.from(response.data, "binary");
 
-        doc.image(signatureBuffer, 100, signPosition, { width: 150 }); // Adjust width as needed
-      } catch (err) {
-        console.error("Error fetching signature image:", err);
+          const yPosition = signPosition || doc.y + 20;
+          doc.image(signatureBuffer, 100, yPosition, { width: 300 });
+          doc.fontSize(12).text("Contractor Signature", { align: "left" });
+        } catch (err) {
+          console.error("Error fetching signature image:", err);
+        }
       }
+      if (ContracteeSignatureURL) {
+        try {
+          const response = await axios.get(ContracteeSignatureURL, {
+            responseType: "arraybuffer",
+          });
+          const signatureBuffer = Buffer.from(response.data, "binary");
+
+          const yPosition = signPosition || doc.y + 40;
+          doc.image(signatureBuffer, 100, yPosition, { width: 300 });
+          doc.fontSize(12).text("Contractee Signature",100,doc.y+40, { align: "left" });
+        } catch (err) {
+          console.error("Error fetching signature image:", err);
+        }
+      }
+
+      doc.end();
+    } catch (error) {
+      reject(error);
     }
-    doc.end();
-
-    stream.on("finish", () => resolve(pdfPath));
-    stream.on("error", (err) => reject(err));
   });
 }
 
