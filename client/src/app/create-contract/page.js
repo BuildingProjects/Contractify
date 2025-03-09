@@ -788,7 +788,7 @@ export default function CreateContractPage() {
     try {
       console.log("Submitting contract form with payload:", payload);
 
-      const response = await fetch(`${API_URL}/api/contracts/createContract`, {
+      const response = await fetch(`${API_URL}/contracts/createContract`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -813,18 +813,18 @@ export default function CreateContractPage() {
   };
 
   return (
-    <div className='min-h-screen bg-gray-50'>
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className='pt-16 sm:pt-20 px-3 sm:px-6 lg:px-8 max-w-4xl mx-auto pb-12'>
+      <main className="pt-16 sm:pt-20 px-3 sm:px-6 lg:px-8 max-w-4xl mx-auto pb-12">
         {/* Header */}
-        <div className='flex items-center gap-4 mb-6'>
+        <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => router.push("/dashboard")}
-            className='inline-flex items-center justify-center p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors'
+            className="inline-flex items-center justify-center p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
           >
-            <ArrowLeftIcon className='h-5 w-5 text-gray-600' />
+            <ArrowLeftIcon className="h-5 w-5 text-gray-600" />
           </button>
-          <h1 className='text-2xl sm:text-3xl font-bold text-gray-800'>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
             Create New Contract
           </h1>
         </div>
@@ -832,37 +832,37 @@ export default function CreateContractPage() {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className='bg-white rounded-xl shadow-lg p-4 sm:p-6'
+          className="bg-white rounded-xl shadow-lg p-4 sm:p-6"
         >
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6'>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* Contract Category */}
             <div>
               <label
-                htmlFor='contractCategory'
-                className='block text-sm font-medium text-gray-700 mb-1'
+                htmlFor="contractCategory"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Contract Category*
               </label>
               <select
-                id='contractCategory'
-                name='contractCategory'
+                id="contractCategory"
+                name="contractCategory"
                 value={formData.contractCategory}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.contractCategory ? "border-red-500" : "border-gray-300"
                 }`}
               >
-                <option value=''>Select a category</option>
-                <option value='Service'>Service</option>
-                <option value='Employment'>Employment</option>
-                <option value='Sales'>Sales</option>
-                <option value='Rental'>Rental</option>
-                <option value='License'>License</option>
-                <option value='Partnership'>Partnership</option>
-                <option value='Other'>Other</option>
+                <option value="">Select a category</option>
+                <option value="Service">Service</option>
+                <option value="Employment">Employment</option>
+                <option value="Sales">Sales</option>
+                <option value="Rental">Rental</option>
+                <option value="License">License</option>
+                <option value="Partnership">Partnership</option>
+                <option value="Other">Other</option>
               </select>
               {errors.contractCategory && (
-                <p className='mt-1 text-sm text-red-500'>
+                <p className="mt-1 text-sm text-red-500">
                   {errors.contractCategory}
                 </p>
               )}
@@ -871,21 +871,21 @@ export default function CreateContractPage() {
             {/* Contract Value */}
             <div>
               <label
-                htmlFor='contractValue'
-                className='block text-sm font-medium text-gray-700 mb-1'
+                htmlFor="contractValue"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Contract Value
               </label>
               <input
-                type='text'
-                id='contractValue'
-                name='contractValue'
+                type="text"
+                id="contractValue"
+                name="contractValue"
                 value={formData.contractValue}
                 onChange={handleChange}
-                placeholder='Enter contract value'
-                className='w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                placeholder="Enter contract value"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <p className='mt-1 text-xs text-gray-500'>
+              <p className="mt-1 text-xs text-gray-500">
                 {!formData.contractValue &&
                   "If no value is specified, N/A will be displayed"}
               </p>
@@ -894,72 +894,72 @@ export default function CreateContractPage() {
             {/* Contractor Name */}
             <div>
               <label
-                htmlFor='contractor'
-                className='block text-sm font-medium text-gray-700 mb-1'
+                htmlFor="contractor"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Contractor Name*
               </label>
               <input
-                type='text'
-                id='contractor'
-                name='contractor'
+                type="text"
+                id="contractor"
+                name="contractor"
                 value={formData.contractor}
                 onChange={handleChange}
-                placeholder='Enter contractor name'
+                placeholder="Enter contractor name"
                 className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.contractor ? "border-red-500" : "border-gray-300"
                 }`}
               />
               {errors.contractor && (
-                <p className='mt-1 text-sm text-red-500'>{errors.contractor}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.contractor}</p>
               )}
             </div>
 
             {/* Contractee Name */}
             <div>
               <label
-                htmlFor='contractee'
-                className='block text-sm font-medium text-gray-700 mb-1'
+                htmlFor="contractee"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Contractee Name*
               </label>
               <input
-                type='text'
-                id='contractee'
-                name='contractee'
+                type="text"
+                id="contractee"
+                name="contractee"
                 value={formData.contractee}
                 onChange={handleChange}
-                placeholder='Enter contractee name'
+                placeholder="Enter contractee name"
                 className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.contractee ? "border-red-500" : "border-gray-300"
                 }`}
               />
               {errors.contractee && (
-                <p className='mt-1 text-sm text-red-500'>{errors.contractee}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.contractee}</p>
               )}
             </div>
 
             {/* Contractor Email */}
             <div>
               <label
-                htmlFor='contractorEmail'
-                className='block text-sm font-medium text-gray-700 mb-1'
+                htmlFor="contractorEmail"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Contractor Email*
               </label>
               <input
-                type='email'
-                id='contractorEmail'
-                name='contractorEmail'
+                type="email"
+                id="contractorEmail"
+                name="contractorEmail"
                 value={formData.contractorEmail}
                 onChange={handleChange}
-                placeholder='Enter contractor email'
+                placeholder="Enter contractor email"
                 className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.contractorEmail ? "border-red-500" : "border-gray-300"
                 }`}
               />
               {errors.contractorEmail && (
-                <p className='mt-1 text-sm text-red-500'>
+                <p className="mt-1 text-sm text-red-500">
                   {errors.contractorEmail}
                 </p>
               )}
@@ -968,24 +968,24 @@ export default function CreateContractPage() {
             {/* Contractee Email */}
             <div>
               <label
-                htmlFor='contracteeEmail'
-                className='block text-sm font-medium text-gray-700 mb-1'
+                htmlFor="contracteeEmail"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Contractee Email*
               </label>
               <input
-                type='email'
-                id='contracteeEmail'
-                name='contracteeEmail'
+                type="email"
+                id="contracteeEmail"
+                name="contracteeEmail"
                 value={formData.contracteeEmail}
                 onChange={handleChange}
-                placeholder='Enter contractee email'
+                placeholder="Enter contractee email"
                 className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.contracteeEmail ? "border-red-500" : "border-gray-300"
                 }`}
               />
               {errors.contracteeEmail && (
-                <p className='mt-1 text-sm text-red-500'>
+                <p className="mt-1 text-sm text-red-500">
                   {errors.contracteeEmail}
                 </p>
               )}
@@ -994,24 +994,24 @@ export default function CreateContractPage() {
             {/* Creation Date */}
             <div>
               <label
-                htmlFor='creationDate'
-                className='block text-sm font-medium text-gray-700 mb-1'
+                htmlFor="creationDate"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Creation Date
               </label>
-              <div className='relative'>
+              <div className="relative">
                 <input
-                  type='date'
-                  id='creationDate'
-                  name='creationDate'
+                  type="date"
+                  id="creationDate"
+                  name="creationDate"
                   value={formData.contractCreationDate}
                   onChange={handleChange}
                   readOnly
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 bg-gray-100 cursor-not-allowed'
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 bg-gray-100 cursor-not-allowed"
                 />
-                <CalendarIcon className='absolute right-3 top-2.5 h-5 w-5 text-gray-400' />
+                <CalendarIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
               </div>
-              <p className='mt-1 text-xs text-gray-500'>
+              <p className="mt-1 text-xs text-gray-500">
                 Auto-generated from system date
               </p>
             </div>
@@ -1019,74 +1019,74 @@ export default function CreateContractPage() {
             {/* Start Date */}
             <div>
               <label
-                htmlFor='startDate'
-                className='block text-sm font-medium text-gray-700 mb-1'
+                htmlFor="startDate"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Start Date*
               </label>
-              <div className='relative'>
+              <div className="relative">
                 <input
-                  type='date'
-                  id='startDate'
-                  name='startDate'
+                  type="date"
+                  id="startDate"
+                  name="startDate"
                   value={formData.startDate}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.startDate ? "border-red-500" : "border-gray-300"
                   }`}
                 />
-                <CalendarIcon className='absolute right-3 top-2.5 h-5 w-5 text-gray-400' />
+                <CalendarIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
               </div>
               {errors.startDate && (
-                <p className='mt-1 text-sm text-red-500'>{errors.startDate}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.startDate}</p>
               )}
             </div>
 
             {/* End Date */}
             <div>
               <label
-                htmlFor='endDate'
-                className='block text-sm font-medium text-gray-700 mb-1'
+                htmlFor="endDate"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 End Date*
               </label>
-              <div className='relative'>
+              <div className="relative">
                 <input
-                  type='date'
-                  id='endDate'
-                  name='endDate'
+                  type="date"
+                  id="endDate"
+                  name="endDate"
                   value={formData.endDate}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.endDate ? "border-red-500" : "border-gray-300"
                   }`}
                 />
-                <CalendarIcon className='absolute right-3 top-2.5 h-5 w-5 text-gray-400' />
+                <CalendarIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
               </div>
               {errors.endDate && (
-                <p className='mt-1 text-sm text-red-500'>{errors.endDate}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.endDate}</p>
               )}
             </div>
           </div>
 
           {/* Description */}
-          <div className='mt-6'>
+          <div className="mt-6">
             <label
-              htmlFor='contractDescription'
-              className='block text-sm font-medium text-gray-700 mb-1'
+              htmlFor="contractDescription"
+              className="block text-sm font-medium text-gray-700 mb-1"
             >
               Description
             </label>
             <textarea
-              id='contractDescription'
-              name='contractDescription'
+              id="contractDescription"
+              name="contractDescription"
               value={formData.contractDescription}
               onChange={handleChange}
               rows={4}
-              placeholder='Enter contract description'
-              className='w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
+              placeholder="Enter contract description"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             ></textarea>
-            <p className='mt-1 text-xs text-gray-500'>
+            <p className="mt-1 text-xs text-gray-500">
               {wordCount} / 30 words {wordCount > 30 ? "(Exceeds limit)" : ""}
               <br />
               Please keep the description concise within 30 words
@@ -1094,118 +1094,118 @@ export default function CreateContractPage() {
           </div>
 
           {/* Custom Fields */}
-          <div className='mt-6'>
-            <div className='flex justify-between items-center mb-2'>
-              <h3 className='text-lg font-medium text-gray-800'>
+          <div className="mt-6">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-medium text-gray-800">
                 Custom Fields
               </h3>
               <button
-                type='button'
+                type="button"
                 onClick={addCustomField}
-                className='inline-flex items-center justify-center gap-1 text-sm bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className="inline-flex items-center justify-center gap-1 text-sm bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <PlusIcon className='h-4 w-4' />
+                <PlusIcon className="h-4 w-4" />
                 Add Field
               </button>
             </div>
 
             {customFields.length === 0 && (
-              <p className='text-sm text-gray-500 italic'>
+              <p className="text-sm text-gray-500 italic">
                 No custom fields added yet
               </p>
             )}
 
-            <div className='space-y-3 mt-3'>
+            <div className="space-y-3 mt-3">
               {customFields.map((field, index) => (
-                <div key={index} className='flex items-center gap-3'>
-                  <div className='flex-1'>
+                <div key={index} className="flex items-center gap-3">
+                  <div className="flex-1">
                     <input
-                      type='text'
+                      type="text"
                       value={field.field}
                       onChange={(e) =>
                         updateCustomField(index, "field", e.target.value)
                       }
-                      placeholder='Field name'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      placeholder="Field name"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                  <div className='flex-1'>
+                  <div className="flex-1">
                     <input
-                      type='text'
+                      type="text"
                       value={field.value}
                       onChange={(e) =>
                         updateCustomField(index, "value", e.target.value)
                       }
-                      placeholder='Field value'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      placeholder="Field value"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <button
-                    type='button'
+                    type="button"
                     onClick={() => removeCustomField(index)}
-                    className='p-2 text-gray-400 hover:text-red-500 focus:outline-none'
+                    className="p-2 text-gray-400 hover:text-red-500 focus:outline-none"
                   >
-                    <XIcon className='h-5 w-5' />
+                    <XIcon className="h-5 w-5" />
                   </button>
                 </div>
               ))}
             </div>
           </div>
           {/* Signature Section */}
-          <div className='mt-6'>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Your Signature*
             </label>
-            <div className='border rounded-lg border-gray-300 p-4'>
+            <div className="border rounded-lg border-gray-300 p-4">
               {formData.contractorSignature.digital ||
               formData.contractorSignature.photo ? (
-                <div className='flex items-center justify-between'>
+                <div className="flex items-center justify-between">
                   <div>
                     <img
                       src={
                         formData.contractorSignature.digital ||
                         formData.contractorSignature.photo
                       }
-                      alt='Your signature'
-                      className='h-16 border rounded p-1'
+                      alt="Your signature"
+                      className="h-16 border rounded p-1"
                     />
                   </div>
                   <button
-                    type='button'
+                    type="button"
                     onClick={() => setShowSignatureModal(true)}
-                    className='text-sm text-blue-600 hover:text-blue-800'
+                    className="text-sm text-blue-600 hover:text-blue-800"
                   >
                     Change Signature
                   </button>
                 </div>
               ) : (
                 <button
-                  type='button'
+                  type="button"
                   onClick={() => setShowSignatureModal(true)}
-                  className='flex items-center gap-2 text-blue-600 hover:text-blue-800 py-2 px-3 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors'
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-800 py-2 px-3 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
                 >
-                  <FileSignature className='h-5 w-5' />
+                  <FileSignature className="h-5 w-5" />
                   Add Signature
                 </button>
               )}
               {errors.signature && (
-                <p className='mt-1 text-sm text-red-500'>{errors.signature}</p>
+                <p className="mt-1 text-sm text-red-500">{errors.signature}</p>
               )}
             </div>
           </div>
           {/* Submit Buttons */}
-          <div className='mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4'>
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
             <button
-              type='submit'
-              className='flex-1 bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md flex items-center justify-center gap-2'
+              type="submit"
+              className="flex-1 bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md flex items-center justify-center gap-2"
             >
-              <SaveIcon className='h-5 w-5' />
+              <SaveIcon className="h-5 w-5" />
               Create Contract
             </button>
             <button
-              type='button'
+              type="button"
               onClick={() => router.push("/dashboard")}
-              className='flex-1 bg-gray-100 text-gray-700 py-2.5 px-4 rounded-lg hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center justify-center gap-2'
+              className="flex-1 bg-gray-100 text-gray-700 py-2.5 px-4 rounded-lg hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center justify-center gap-2"
             >
               Cancel
             </button>
