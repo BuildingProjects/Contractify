@@ -141,6 +141,7 @@ const createContract = async (req, res) => {
       endDate,
       contractDescription,
       status,
+      contractorSignature,
       ...dynamicFields
     } = req.body;
 
@@ -180,9 +181,14 @@ const createContract = async (req, res) => {
       startDate,
       endDate,
       contractDescription,
+      contractorSignature: {
+        digital: contractorSignature?.digital || "", // Ensure valid storage
+        photo: contractorSignature?.photo || "",
+      },
       status: "Pending", // Default status
       dynamicFields,
     });
+    console.log(contractorSignature);
 
     // Saving contract to the database
     console.log("Saving new contract to the database");
