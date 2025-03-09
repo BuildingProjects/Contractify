@@ -810,7 +810,7 @@ export default function CreateContractPage() {
       console.error("Error submitting form:", error);
     }
     // Navigate back to dashboard
-    // router.push("/dashboard");
+    router.push("/dashboard");
   };
 
   return (
