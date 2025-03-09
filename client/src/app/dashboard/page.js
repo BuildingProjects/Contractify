@@ -34,24 +34,25 @@ export default function DashboardPage() {
   const [statusCounts, setStatusCounts] = useState({});
   const [isContractor, setIsContractor] = useState(false);
   const router = useRouter();
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // In your first useEffect where you decode the token
   useEffect(() => {
-    const token = Cookies.get("authToken");
-    console.log("Initial token check:", token);
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        console.log("Decoded token:", decoded); // Log the full decoded token
-        console.log("Token expiration:", new Date(decoded.exp * 1000)); // Check expiration
-        console.log("");
-        setEmail(decoded.email);
-      } catch (error) {
-        console.error("Error decoding token:", error);
-      }
-    } else {
-      console.error("No token found");
-    }
+    fetch(`${API_URL}/auth/get-token`, {
+      method: "GET",
+      credentials: "include", // Ensure cookies are sent
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.token) {
+          console.log("Token received from backend:", data.token);
+          const decoded = jwtDecode(data.token);
+          console.log("Decoded token:", decoded);
+          setEmail(decoded.email);
+        } else {
+          console.error("No token received");
+        }
+      })
+      .catch((error) => console.error("Error fetching token:", error));
   }, []);
 
   // Separate useEffect to wait for email to be set
@@ -63,9 +64,9 @@ export default function DashboardPage() {
 
     console.log(
       "Making API request to:",
-      `http://localhost:5000/api/contracts/getContracts/${email}`
+      `${API_URL}/contracts/getContracts/${email}`
     );
-    const uri = `http://localhost:5000/api/contracts/getContracts/${email}`;
+    const uri = `${API_URL}/contracts/getContracts/${email}`;
     fetch(uri, {
       method: "GET",
       headers: {
@@ -95,7 +96,7 @@ export default function DashboardPage() {
   useEffect(() => {
     console.log("Updating expired contracts...");
 
-    fetch("http://localhost:5000/api/contracts/updateContractStatusToExpired", {
+    fetch(`${API_URL}/contracts/updateContractStatusToExpired`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -232,12 +233,12 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className='min-h-screen bg-gray-50'>
       <Navbar />
-      <main className="pt-16 sm:pt-20 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <main className='pt-16 sm:pt-20 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto'>
         {/* Header with responsive layout */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+        <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8'>
+          <h1 className='text-2xl sm:text-3xl font-bold text-gray-800'>
             Dashboard
           </h1>
           {isContractor ? (
@@ -264,16 +265,16 @@ export default function DashboardPage() {
         </div>
 
         {/* Grid with responsive columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
           {/* Recent Contracts */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="flex items-center justify-between p-3 sm:p-4 border-b">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+          <div className='bg-white rounded-xl shadow-lg overflow-hidden'>
+            <div className='flex items-center justify-between p-3 sm:p-4 border-b'>
+              <h2 className='text-lg sm:text-xl font-semibold text-gray-800'>
                 Recent Contracts
               </h2>
-              <FileTextIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+              <FileTextIcon className='h-5 w-5 sm:h-6 sm:w-6 text-gray-500' />
             </div>
-            <div className="divide-y">
+            <div className='divide-y'>
               {contracts
                 .map((contract) => ({
                   ...contract,
@@ -284,19 +285,19 @@ export default function DashboardPage() {
                 .map((contract) => (
                   <div
                     key={contract._id}
-                    className="px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
+                    className='px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer'
                     onClick={() => openContractModal(contract)}
                   >
-                    <div className="overflow-hidden">
-                      <p className="font-medium text-gray-800 truncate">
+                    <div className='overflow-hidden'>
+                      <p className='font-medium text-gray-800 truncate'>
                         {contract.contractCategory || "No Category"}
                       </p>
-                      <p className="text-xs sm:text-sm text-gray-500 truncate">
+                      <p className='text-xs sm:text-sm text-gray-500 truncate'>
                         {contract.contractee || "No Contractee"}
                       </p>
                     </div>
-                    <div className="flex items-center flex-shrink-0 ml-2">
-                      <span className="text-xs sm:text-sm font-semibold mr-2 whitespace-nowrap">
+                    <div className='flex items-center flex-shrink-0 ml-2'>
+                      <span className='text-xs sm:text-sm font-semibold mr-2 whitespace-nowrap'>
                         ₹{contract.contractValue || "N/A"}
                       </span>
                       <span
@@ -312,7 +313,7 @@ export default function DashboardPage() {
                             "bg-gray-400"
                           }`}
                         ></span>
-                        <span className="hidden xs:inline">
+                        <span className='hidden xs:inline'>
                           {contract.status || "Unknown"}
                         </span>
                       </span>
@@ -323,33 +324,33 @@ export default function DashboardPage() {
           </div>
 
           {/* Contract Analytics */}
-          <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+          <div className='bg-white rounded-xl shadow-lg p-3 sm:p-4'>
+            <div className='flex items-center justify-between mb-3 sm:mb-4'>
+              <h2 className='text-lg sm:text-xl font-semibold text-gray-800'>
                 Contract Analytics
               </h2>
-              <BarChartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+              <BarChartIcon className='h-5 w-5 sm:h-6 sm:w-6 text-gray-500' />
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:gap-4">
-              <div className="bg-blue-50 p-2 sm:p-4 rounded-lg text-center">
-                <p className="text-xs sm:text-sm text-gray-600">
+            <div className='grid grid-cols-2 gap-2 sm:gap-4'>
+              <div className='bg-blue-50 p-2 sm:p-4 rounded-lg text-center'>
+                <p className='text-xs sm:text-sm text-gray-600'>
                   Total Contracts
                 </p>
-                <p className="text-xl sm:text-2xl font-bold text-blue-600">
+                <p className='text-xl sm:text-2xl font-bold text-blue-600'>
                   {contracts.length}
                 </p>
               </div>
-              <div className="bg-green-50 p-2 sm:p-4 rounded-lg text-center">
-                <p className="text-xs sm:text-sm text-gray-600">
+              <div className='bg-green-50 p-2 sm:p-4 rounded-lg text-center'>
+                <p className='text-xs sm:text-sm text-gray-600'>
                   Active Contracts
                 </p>
-                <p className="text-xl sm:text-2xl font-bold text-green-600">
+                <p className='text-xl sm:text-2xl font-bold text-green-600'>
                   {statusCounts["Signed by Both"] || 0}
                 </p>
               </div>
-              <div className="bg-yellow-50 p-2 sm:p-4 rounded-lg text-center">
-                <p className="text-xs sm:text-sm text-gray-600">Pending</p>
-                <p className="text-xl sm:text-2xl font-bold text-yellow-600">
+              <div className='bg-yellow-50 p-2 sm:p-4 rounded-lg text-center'>
+                <p className='text-xs sm:text-sm text-gray-600'>Pending</p>
+                <p className='text-xl sm:text-2xl font-bold text-yellow-600'>
                   {statusCounts["Pending"] || 0}
                 </p>
               </div>
@@ -363,14 +364,14 @@ export default function DashboardPage() {
           </div>
 
           {/* Upcoming Renewals */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="flex items-center justify-between p-3 sm:p-4 border-b">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+          <div className='bg-white rounded-xl shadow-lg overflow-hidden'>
+            <div className='flex items-center justify-between p-3 sm:p-4 border-b'>
+              <h2 className='text-lg sm:text-xl font-semibold text-gray-800'>
                 Upcoming Renewals
               </h2>
-              <ClockIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+              <ClockIcon className='h-5 w-5 sm:h-6 sm:w-6 text-gray-500' />
             </div>
-            <div className="divide-y">
+            <div className='divide-y'>
               {contracts
                 .map((contract) => {
                   const today = new Date(); // Get today's date
@@ -391,14 +392,14 @@ export default function DashboardPage() {
                 .map((contract) => (
                   <div
                     key={contract._id}
-                    className="px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer"
+                    className='px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 transition-colors flex justify-between items-center cursor-pointer'
                     onClick={() => openContractModal(contract)}
                   >
-                    <div className="overflow-hidden">
-                      <p className="font-medium text-gray-800 truncate">
+                    <div className='overflow-hidden'>
+                      <p className='font-medium text-gray-800 truncate'>
                         {contract.contractCategory || "No Category"}
                       </p>
-                      <p className="text-xs sm:text-sm text-gray-500 truncate">
+                      <p className='text-xs sm:text-sm text-gray-500 truncate'>
                         {contract.contractee || "No Contractee"}
                       </p>
                     </div>
@@ -418,12 +419,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Enhanced Contract Filter */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">
+        <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 mb-4'>
+          <h2 className='text-xl font-semibold text-gray-800'>
             Contract Management
           </h2>
-          <div className="w-full sm:w-auto flex items-center gap-2">
-            <div className="w-full sm:w-auto flex rounded-lg overflow-hidden shadow-md">
+          <div className='w-full sm:w-auto flex items-center gap-2'>
+            <div className='w-full sm:w-auto flex rounded-lg overflow-hidden shadow-md'>
               <button
                 className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm ${
                   filter === "All"
@@ -556,31 +557,31 @@ export default function DashboardPage() {
 
         {/* Contract Detail Modal - Responsive improvements */}
         {isModalOpen && selectedContract && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-0">
+          <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-0'>
             <div
-              className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+              className='bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto'
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center p-3 sm:p-4 border-b sticky top-0 bg-white z-10">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-800 truncate max-w-[80%]">
+              <div className='flex justify-between items-center p-3 sm:p-4 border-b sticky top-0 bg-white z-10'>
+                <h2 className='text-lg sm:text-xl font-bold text-gray-800 truncate max-w-[80%]'>
                   {selectedContract.contractCategory}
                 </h2>
                 <button
                   onClick={closeModal}
-                  className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                  className='text-gray-500 hover:text-gray-700 focus:outline-none'
                 >
-                  <XIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <XIcon className='h-5 w-5 sm:h-6 sm:w-6' />
                 </button>
               </div>
 
-              <div className="p-4 sm:p-6">
+              <div className='p-4 sm:p-6'>
                 {/* Status banner */}
                 <div
                   className={`mb-4 sm:mb-6 p-2 sm:p-3 rounded-lg ${
                     statusColors[selectedContract.status].bg
                   }`}
                 >
-                  <div className="flex items-center">
+                  <div className='flex items-center'>
                     <span
                       className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${
                         statusColors[selectedContract.status].indicator
@@ -597,32 +598,32 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Contract details grid - responsive layout */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="space-y-3 sm:space-y-4">
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6'>
+                  <div className='space-y-3 sm:space-y-4'>
                     <div>
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
-                        <UserIcon className="h-3 w-3 sm:h-4 sm:w-4" /> Client
+                      <h3 className='text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2'>
+                        <UserIcon className='h-3 w-3 sm:h-4 sm:w-4' /> Client
                       </h3>
-                      <p className="mt-1 text-base sm:text-lg font-medium text-gray-900 break-words">
+                      <p className='mt-1 text-base sm:text-lg font-medium text-gray-900 break-words'>
                         {selectedContract.contractee}
                       </p>
                     </div>
 
                     <div>
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
-                        <IndianRupeeIcon className="h-3 w-3 sm:h-4 sm:w-4" />{" "}
+                      <h3 className='text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2'>
+                        <IndianRupeeIcon className='h-3 w-3 sm:h-4 sm:w-4' />{" "}
                         Contract Value
                       </h3>
-                      <p className="mt-1 text-base sm:text-lg font-medium text-gray-900">
+                      <p className='mt-1 text-base sm:text-lg font-medium text-gray-900'>
                         {selectedContract.contractValue}
                       </p>
                     </div>
                     <div>
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
-                        <ClipboardIcon className="h-3 w-3 sm:h-4 sm:w-4" />{" "}
+                      <h3 className='text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2'>
+                        <ClipboardIcon className='h-3 w-3 sm:h-4 sm:w-4' />{" "}
                         Description
                       </h3>
-                      <p className="mt-1 text-xs sm:text-sm text-gray-700">
+                      <p className='mt-1 text-xs sm:text-sm text-gray-700'>
                         {selectedContract.contractDescription}
                       </p>
                     </div>
@@ -647,29 +648,29 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Timeline section - more responsive */}
-                <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t">
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-5">
+                <div className='mt-6 sm:mt-8 pt-4 sm:pt-6 border-t'>
+                  <h3 className='text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-5'>
                     Contract Timeline
                   </h3>
-                  <div className="space-y-4 sm:space-y-5">
+                  <div className='space-y-4 sm:space-y-5'>
                     {/* Contract Creation Date */}
-                    <div className="flex items-start">
+                    <div className='flex items-start'>
                       <div>
-                        <div className="flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-green-200 text-green-900 mr-3 sm:mr-4">
-                          <CheckIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <div className='flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-green-200 text-green-900 mr-3 sm:mr-4'>
+                          <CheckIcon className='h-4 w-4 sm:h-5 sm:w-5' />
                         </div>
-                        <div className="h-full w-0.5 bg-gray-300 ml-4 sm:ml-5 mt-1"></div>
+                        <div className='h-full w-0.5 bg-gray-300 ml-4 sm:ml-5 mt-1'></div>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm sm:text-base font-semibold text-gray-700">
+                      <div className='flex-1'>
+                        <h4 className='text-sm sm:text-base font-semibold text-gray-700'>
                           Contract Created
                         </h4>
-                        <p className="text-sm sm:text-base font-medium text-gray-900">
+                        <p className='text-sm sm:text-base font-medium text-gray-900'>
                           {new Date(
                             selectedContract.contractCreationDate
                           ).toLocaleDateString("en-GB")}
                         </p>
-                        <p className="text-xs sm:text-sm mt-1 text-gray-600">
+                        <p className='text-xs sm:text-sm mt-1 text-gray-600'>
                           Initial contract draft created and shared with
                           stakeholders.
                         </p>
@@ -677,45 +678,45 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Contract Start Date */}
-                    <div className="flex items-start">
+                    <div className='flex items-start'>
                       <div>
-                        <div className="flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-blue-200 text-blue-900 mr-3 sm:mr-4">
-                          <PenToolIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <div className='flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-blue-200 text-blue-900 mr-3 sm:mr-4'>
+                          <PenToolIcon className='h-4 w-4 sm:h-5 sm:w-5' />
                         </div>
-                        <div className="h-full w-0.5 bg-gray-300 ml-4 sm:ml-5 mt-1"></div>
+                        <div className='h-full w-0.5 bg-gray-300 ml-4 sm:ml-5 mt-1'></div>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm sm:text-base font-semibold text-gray-700">
+                      <div className='flex-1'>
+                        <h4 className='text-sm sm:text-base font-semibold text-gray-700'>
                           Contract Start Date
                         </h4>
-                        <p className="text-sm sm:text-base font-medium text-gray-900">
+                        <p className='text-sm sm:text-base font-medium text-gray-900'>
                           {new Date(
                             selectedContract.startDate
                           ).toLocaleDateString("en-GB")}
                         </p>
-                        <p className="text-xs sm:text-sm mt-1 text-gray-600">
+                        <p className='text-xs sm:text-sm mt-1 text-gray-600'>
                           Contract starts and becomes effective.
                         </p>
                       </div>
                     </div>
 
                     {/* Contract End Date */}
-                    <div className="flex items-start">
+                    <div className='flex items-start'>
                       <div>
-                        <div className="flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-purple-200 text-purple-900 mr-3 sm:mr-4">
-                          <ActivityIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <div className='flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-purple-200 text-purple-900 mr-3 sm:mr-4'>
+                          <ActivityIcon className='h-4 w-4 sm:h-5 sm:w-5' />
                         </div>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm sm:text-base font-semibold text-gray-700">
+                      <div className='flex-1'>
+                        <h4 className='text-sm sm:text-base font-semibold text-gray-700'>
                           Contract End Date
                         </h4>
-                        <p className="text-sm sm:text-base font-medium text-gray-900">
+                        <p className='text-sm sm:text-base font-medium text-gray-900'>
                           {new Date(
                             selectedContract.endDate
                           ).toLocaleDateString("en-GB")}
                         </p>
-                        <p className="text-xs sm:text-sm mt-1 text-gray-600">
+                        <p className='text-xs sm:text-sm mt-1 text-gray-600'>
                           Contract ends and will no longer be in effect.
                         </p>
                       </div>

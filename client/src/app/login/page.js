@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -72,8 +72,8 @@ export default function LoginPage() {
     try {
       const apiUrl =
         formData.userType === "contractor"
-          ? "http://localhost:5000/api/auth/contractorLogin"
-          : "http://localhost:5000/api/auth/contracteeLogin";
+          ? `${API_URL}/auth/contractorLogin`
+          : `${API_URL}/auth/contracteeLogin`;
 
       const res = await fetch(apiUrl, {
         method: "POST",
