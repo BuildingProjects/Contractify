@@ -809,7 +809,6 @@ export default function CreateContractPage() {
     } catch (error) {
       console.error("Error submitting form:", error);
     }
-    // Navigate back to dashboard
     router.push("/dashboard");
   };
 
