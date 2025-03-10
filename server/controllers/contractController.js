@@ -194,7 +194,14 @@ const createContract = async (req, res) => {
     console.log("Saving new contract to the database");
     await newContract.save();
     console.log("Contract saved successfully", newContract._id);
-
+    
+    console.log("Creating a notification for contractee", contractee);
+    await Notification.create({
+      user: contractee, // Contractee ID
+      message: `A new contract "${newContract._id}" has been assigned to you.`,
+      isRead: false,
+    });
+    
     // Sending email notification to contractee
     const acceptUrl = `${process.env.BASE_URL}/api/contracts/acceptContract/${newContract._id}`;
     const rejectUrl = `${process.env.BASE_URL}/api/contracts/rejectContract/${newContract._id}`;

@@ -11,6 +11,7 @@ dotenv.config();
 const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const contractRoutes = require("./routes/contractRoutes");
+const notificationRoutes = require("./routes/notifications");
 
 // Initialize Express app
 const app = express();
@@ -40,6 +41,7 @@ app.get("/api/Api", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/contracts", contractRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Handle unknown routes and errors
 app.use((req, res, next) => {
