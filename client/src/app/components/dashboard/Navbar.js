@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { BellIcon, MenuIcon, XIcon, SearchIcon } from "lucide-react";
@@ -10,6 +11,7 @@ export default function Navbar() {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState(3); // Example notifications count
+  const router = useRouter();
 
   return (
     <nav className="bg-white shadow-md fixed w-full z-50">
@@ -79,12 +81,13 @@ export default function Navbar() {
               {/* Dropdown Menu */}
               {isProfileDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg transition-transform duration-200">
-                  <Link
-                    href="/profile"
-                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                  <button
+                    onClick={() => router.push("/profile-page")}
+                    className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
                   >
                     Profile
-                  </Link>
+                  </button>
+
                   <Link
                     href="/settings"
                     className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
