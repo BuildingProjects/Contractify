@@ -55,6 +55,8 @@ export default function DashboardPage() {
       .catch((error) => console.error("Error fetching token:", error));
   }, []);
 
+  const [contractorName, setContractorName] = useState("");
+
   // Separate useEffect to wait for email to be set
   useEffect(() => {
     if (!email) {
@@ -85,6 +87,13 @@ export default function DashboardPage() {
         setContracts(data.contracts);
         setFilteredContracts(data.contracts);
         calculateStatusCounts(data.contracts);
+        if (data.contracts.length > 0) {
+          setContractorName(
+            isContractor
+              ? data.contracts[0].contractor
+              : data.contracts[0].contractee || "N/A"
+          );
+        }
       })
       .catch((error) => {
         console.error("Error fetching contracts:", error);
@@ -234,7 +243,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar contractorName={contractorName} />
       <main className="pt-16 sm:pt-20 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header with responsive layout */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
@@ -606,6 +615,15 @@ export default function DashboardPage() {
                       </h3>
                       <p className="mt-1 text-base sm:text-lg font-medium text-gray-900 break-words">
                         {selectedContract.contractee}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
+                        <UserIcon className="h-3 w-3 sm:h-4 sm:w-4" />{" "}
+                        Contractor
+                      </h3>
+                      <p className="mt-1 text-base sm:text-lg font-medium text-gray-900 break-words">
+                        {selectedContract.contractor}
                       </p>
                     </div>
 

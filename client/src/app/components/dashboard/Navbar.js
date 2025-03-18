@@ -7,7 +7,7 @@ import { BellIcon, MenuIcon, XIcon, SearchIcon } from "lucide-react";
 import logo from "../../assets/ankur.jpg";
 import ProfileImage from "../../assets/bg_connect.png";
 
-export default function Navbar() {
+export default function Navbar({ contractorName }) {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState(3); // Example notifications count
@@ -66,15 +66,15 @@ export default function Navbar() {
                 onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                 className="flex items-center space-x-2 focus:outline-none"
               >
-                <Image
-                  src={ProfileImage}
-                  alt="User Profile"
-                  width={40}
-                  height={40}
-                  className="rounded-full border border-gray-300"
-                />
+                {/* Profile Placeholder with Initial */}
+                <div className="w-10 h-10 flex items-center justify-center rounded-full bg-yellow-500 text-white font-bold text-lg border border-gray-300">
+                  {contractorName
+                    ? contractorName.charAt(0).toUpperCase()
+                    : "?"}
+                </div>
+
                 <span className="hidden md:block text-gray-700 font-medium">
-                  John Doe
+                  {contractorName}
                 </span>
               </button>
 
