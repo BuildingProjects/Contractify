@@ -1,482 +1,388 @@
-const nodemailer = require("nodemailer");
-const mongoose = require("mongoose");
-const Contract = require("../models/Contract");
-const { ContractorUser, ContracteeUser } = require("../models/User");
-const PDFDocument = require("pdfkit");
-const fs = require("fs");
-const path = require("path");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const puppeteer = require("puppeteer");
+require('dotenv').config();
+const mongoose = require('mongoose');
+const { body, validationResult } = require('express-validator');
+const fs = require('fs');
+const path = require('path');
+const nodemailer = require('nodemailer');
+const marked = require('marked');
+const PDFDocument = require('pdf-lib').PDFDocument;
+const Contract = require('../models/Contract');
+const { ensureTempDir } = require('../utils/fileUtils');
+const express = require("express");
+const router = express.Router();
+const axios = require('axios');
+const FormData = require('form-data');
+const { generateContractPDF } = require("../utils/pdfGenerator");
+const { sendContractEmails } = require("../utils/emailService");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Validate required environment variables
+const requiredEnvVars = [
+  'MONGO_URI',
+  'EMAIL',
+  'EMAIL_PASSWORD',
+  'PORT',
+  'BASE_URL',
+  'PINATA_API_KEY',
+  'PINATA_SECRET_API_KEY'
+];
 
+const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]);
+if (missingEnvVars.length > 0) {
+  console.error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
+  process.exit(1);
+}
+
+// Setup nodemailer transporter with SMTP settings for Gmail
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASSKEY,
+    user: 'contractify2025@gmail.com',
+    pass: 'bdmo ukbw lytz izmx'
   },
-});
-const ImageKit = require("imagekit");
-const imagekit = new ImageKit({
-  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+  tls: {
+    rejectUnauthorized: false
+  }
 });
 
-const saveSignature = async (req, res) => {
-  try {
-    const { signature } = req.body;
-
-    if (!signature) {
-      return res.status(400).json({ error: "Signature is required" });
-    }
-
-    // Upload to ImageKit
-    const uploadResponse = await imagekit.upload({
-      file: signature, // Base64 string
-      fileName: `signature_${Date.now()}.png`, // Unique filename
-      folder: "/signatures/",
-    });
-
-    res.status(200).json({
-      message: "Signature uploaded successfully",
-      url: uploadResponse.url,
-    });
-  } catch (error) {
-    console.error("Save Signature Error:", error);
-    res.status(500).json({ error: "Internal server error" });
+// Verify SMTP connection
+transporter.verify(function(error, success) {
+  if (error) {
+    console.error('SMTP connection error:', error);
+  } else {
+    console.log('SMTP server is ready to take our messages');
   }
-};
+});
 
-//function to send email
-const sendEmail = async (to, subject, html) => {
-  await transporter.sendMail({
-    from: `"Contract Management" ${process.env.EMAIL}`,
-    to,
-    subject,
-    html,
-  });
-};
-
-// Create a new contract
-// const createContract = async (req, res) => {
-//   try {
-//     const {
-//       contractor,
-//       contractee,
-//       contractorEmail,
-//       contracteeEmail,
-//       contractCategory,
-//       contractValue,
-//       contractCreationDate,
-//       startDate,
-//       endDate,
-//       contractDescription,
-//       status,
-//       ...dynamicFields
-//     } = req.body;
-
-//     // Check if contractee email exists in the database
-//     const existingContractee = await ContracteeUser.findOne({
-//       email: contracteeEmail,
-//     });
-//     if (!existingContractee) {
-//       return res
-//         .status(404)
-//         .json({ message: "Contractee email not found in the database" });
-//     }
-
-//     const newContract = new Contract({
-//       contractor,
-//       contractee,
-//       contractorEmail,
-//       contracteeEmail,
-//       contractCategory,
-//       contractValue,
-//       contractCreationDate,
-//       startDate,
-//       endDate,
-//       contractDescription,
-//       status: "Pending",
-//       dynamicFields,
-//     });
-
-//     await newContract.save();
-
-//     //send email to contractee
-//     const acceptUrl = `${process.env.BASE_URL}/api/contracts/acceptContract/${newContract._id}`;
-//     const rejectUrl = `${process.env.BASE_URL}/api/contracts/rejectContract/${newContract._id}`;
-
-//     await sendEmail(
-//       contracteeEmail,
-//       "New Contract Issued",
-//       `<p>You have received a new contract from ${contractorEmail}.</p>
-//       <p>Click below to accept or reject:</p>
-//       <a href="${acceptUrl}">Accept Contract</a> | <a href="${rejectUrl}">Reject Contract</a>`
-//     );
-
-//     res
-//       .status(201)
-//       .json({ message: "Contract created succesfully", contract: newContract });
-//   } catch (error) {
-//     console.error("Error creating contract:", error);
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
-const createContract = async (req, res) => {
-  try {
-    console.log("Received request to create contract", req.body);
-
-    // Destructuring request body
-    const {
-      contractor,
-      contractee,
-      contractorEmail,
-      contracteeEmail,
-      contractCategory,
-      contractValue,
-      contractCreationDate,
-      startDate,
-      endDate,
-      contractDescription,
-      status,
-      contractorSignature,
-      ...dynamicFields
-    } = req.body;
-
-    console.log("Extracted contract details", {
-      contractor,
-      contractee,
-      contractorEmail,
-      contracteeEmail,
-    });
-
-    // Check if contractee email exists in the database
-    console.log("Checking if contractee email exists in the database");
-    const existingContractee = await ContracteeUser.findOne({
-      email: contracteeEmail,
-    });
-
-    if (!existingContractee) {
-      console.warn(
-        "Contractee email not found in the database",
-        contracteeEmail
-      );
-      return res
-        .status(404)
-        .json({ message: "Contractee email not found in the database" });
-    }
-
-    // Creating new contract object
-    console.log("Creating new contract object");
-    const newContract = new Contract({
-      contractor,
-      contractee,
-      contractorEmail,
-      contracteeEmail,
-      contractCategory,
-      contractValue,
-      contractCreationDate,
-      startDate,
-      endDate,
-      contractDescription,
-      contractorSignature: {
-        digital: contractorSignature?.digital || "", // Ensure valid storage
-        photo: contractorSignature?.photo || "",
-      },
-      status: "Pending", // Default status
-      dynamicFields,
-    });
-    console.log(contractorSignature);
-
-    // Saving contract to the database
-    console.log("Saving new contract to the database");
-    await newContract.save();
-    console.log("Contract saved successfully", newContract._id);
-
-    // Sending email notification to contractee
-    const acceptUrl = `${process.env.BASE_URL}/api/contracts/acceptContract/${newContract._id}`;
-    const rejectUrl = `${process.env.BASE_URL}/api/contracts/rejectContract/${newContract._id}`;
-
-    console.log("Sending email to contractee", contracteeEmail);
-    await sendEmail(
-      contracteeEmail,
-      "New Contract Issued",
-      `<p>You have received a new contract from ${contractorEmail}.</p>
-      <p>Click below to accept or reject:</p>
-      <a href="${acceptUrl}">Accept Contract</a> | <a href="${rejectUrl}">Reject Contract</a>`
-    );
-    console.log("Email sent successfully to", contracteeEmail);
-
-    // Sending success response
-    res.status(201).json({
-      message: "Contract created successfully",
-      contract: newContract,
-    });
-  } catch (error) {
-    console.error("Error creating contract:", error);
-    res.status(500).json({ message: "Server error", error });
-  }
-};
-
-// Get  contracts by email (contractor or contractee)
+// Controller functions
 const getContractsByEmail = async (req, res) => {
-  // try {
-  //   // const email = req.params;
-  //   const email = req.body;
-  //   // let email = "kumarros2002@gmail.com";
-  //   // let query = {
-  //   //   $or: [{ contractorEmail: email }, { contracteeEmail: email }],
-  //   // };
-  //   let query = {
-  //     contractorEmail: email,
-  //   };
-  //   const contracts = await Contract.find(query);
-  //   res.status(200).json({ contracts });
-  // } catch (error) {
-  //   console.error("Error fetching contracts:", error);
-  //   res.status(500).json({ message: "Server error", error });
-  // }
   try {
-    console.log("Incoming request params:", req.params); // Debug request params
+    const email = req.params.email;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+    
+    console.log('Fetching contracts for email:', email);
+    
+    const contracts = await Contract.find({
+      $or: [
+        { contractorEmail: email },
+        { contracteeEmail: email }
+      ]
+    });
+    
+    console.log('Found contracts:', contracts.length);
+    console.log('Sample contract:', contracts[0] ? {
+      id: contracts[0]._id,
+      status: contracts[0].status,
+      category: contracts[0].contractCategory
+    } : 'No contracts found');
+    
+    // Return the contracts array directly
+    res.json(contracts);
+  } catch (error) {
+    console.error('Error fetching contracts:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
-    const { email } = req.params; // Extract email from URL
+const getContractById = async (req, res) => {
+  try {
+    const contractId = req.params.id;
+    if (!contractId) return res.status(400).json({ error: 'Contract ID is required' });
+    
+    const contract = await Contract.findById(contractId);
+    if (!contract) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+    
+    res.json({ contract });
+  } catch (error) {
+    console.error('Error fetching contract:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
-    if (!email) {
-      console.log("Error: Email is missing in request params"); // Debug missing email
-      return res.status(400).json({ message: "Email is required" });
+const createContract = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  // Validate required fields
+  const requiredFields = [
+    'contractCategory',
+    'contractor',
+    'contractee',
+    'contractorEmail',
+    'contracteeEmail',
+    'contractValue',
+    'startDate',
+    'endDate',
+    'contractDescription'
+  ];
+
+  const missingFields = requiredFields.filter(field => !req.body[field]);
+  if (missingFields.length > 0) {
+    console.error('Missing required fields:', missingFields);
+    return res.status(400).json({ 
+      error: 'Missing required fields',
+      missingFields 
+    });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    console.log('Creating new contract with data:', req.body);
+    
+    const contract = new Contract({
+      ...req.body,
+      contractCreationDate: new Date(),
+      status: "Pending",
+      cids: [] // Initialize empty CIDs array
+    });
+    
+    console.log('Saving contract to database...');
+    const savedContract = await contract.save({ session });
+    console.log('Contract saved successfully:', savedContract._id);
+
+    // Generate and upload PDF to IPFS via Pinata
+    console.log('Generating PDF for contract...');
+    let cid;
+    try {
+      cid = await generateContractPDF(savedContract);
+      console.log('PDF generated and uploaded to IPFS. CID:', cid);
+      
+      // Update contract with CID
+      savedContract.cids.push(cid);
+      await savedContract.save({ session });
+      console.log('Updated contract with CID');
+
+      // Log contract details with CID
+      console.log('Contract Details:', {
+        contractId: savedContract._id,
+        category: savedContract.contractCategory,
+        contractor: savedContract.contractor,
+        contractee: savedContract.contractee,
+        value: savedContract.contractValue,
+        startDate: savedContract.startDate,
+        endDate: savedContract.endDate,
+        ipfsCID: cid
+      });
+    } catch (pdfError) {
+      console.error('Error generating PDF:', pdfError);
+      // If PDF generation fails, we should still save the contract but log the error
+      console.error('Contract created but PDF generation failed:', pdfError.message);
     }
 
-    let query = {
-      contractorEmail: email, // Ensure it's a string
-    };
+    // Send email notifications
+    console.log('Sending email notifications...');
+    try {
+      await sendContractEmails(savedContract);
+      console.log('Email notifications sent');
+    } catch (emailError) {
+      console.error('Error sending emails:', emailError);
+      // Don't throw here, as the contract is already created
+    }
 
-    console.log("Query being executed:", query); // Debug query before execution
+    await session.commitTransaction();
+    session.endSession();
 
-    const contracts = await Contract.find(query);
-
-    console.log("Contracts found:", contracts.length); // Debug number of contracts found
-
-    res.status(200).json({ contracts });
+    res.json({ 
+      contract: savedContract,
+      message: "Contract created successfully",
+      pdfUrl: `${process.env.BASE_URL}/contracts/${savedContract._id}/pdf`,
+      ipfsUrl: cid ? `https://ipfs.io/ipfs/${cid}` : null,
+      cid: cid // Include CID in response
+    });
   } catch (error) {
-    console.error("Error fetching contracts:", error); // Log the actual error
-    res.status(500).json({ message: "Server error", error });
+    await session.abortTransaction();
+    session.endSession();
+    console.error('Detailed error in createContract:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    res.status(500).json({ 
+      error: 'Failed to create contract',
+      details: error.message 
+    });
   }
 };
 
 const acceptContract = async (req, res) => {
   try {
-    const contract = await Contract.findById(req.params.id);
-    if (!contract)
-      return res.status(404).json({ message: "Contract not found" });
+    const contractId = req.params.id;
+    const contract = await Contract.findById(contractId);
+    if (!contract) return res.status(404).json({ error: 'Contract not found' });
 
     contract.status = "Accepted";
     await contract.save();
 
-    //notify contractor
-
-    await sendEmail(
-      contract.contractorEmail,
-      "Contract Accepted",
-      `<p>Your contract with ${contract.contracteeEmail} has been accepted.</p>`
-    );
-
-    res.status(200).json({ message: " Contract accepted successfully" });
+    res.json({ message: 'Contract accepted successfully' });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error('Error accepting contract:', error);
+    res.status(500).json({ error: 'Failed to accept contract' });
   }
 };
 
 const rejectContract = async (req, res) => {
   try {
-    const contract = await Contract.findById(req.params.id);
-    if (!contract)
-      return res.status(404).json({ message: "Contract not found" });
+    const contractId = req.params.id;
+    const contract = await Contract.findById(contractId);
+    if (!contract) return res.status(404).json({ error: 'Contract not found' });
 
     contract.status = "Rejected";
     await contract.save();
 
-    // Notify contractor
-    await sendEmail(
-      contract.contractorEmail,
-      "Contract Rejected",
-      `<p>Your contract with ${contract.contracteeEmail} has been rejected.</p>`
-    );
-
-    res.status(200).json({ message: "Contract rejected successfully" });
+    res.json({ message: 'Contract rejected successfully' });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
-  }
-};
-
-// Function to convert markdown to HTML
-const convertMarkdownToHTML = (text) => {
-  return text.replace(/\*\*(.*?)\*\*/g, "$1");
-};
-
-// Generate contract PDF content from gemini
-
-async function generateContract(contractDetails) {
-  try {
-    console.log(contractDetails);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-
-    const prompt = `Generate a formal contract template based on the following details:
-        Contractor Email: ${contractDetails.contractorEmail}
-        Contractee Email: ${contractDetails.contracteeEmail}
-        Start Date: ${contractDetails.startTime}
-        End Date: ${contractDetails.endTime}
-        Additional Terms: ${JSON.stringify(contractDetails.dynamicFields)}
-
-        Provide a structured contract format with necessary legal terms. only include the given details in the contract, do not add or assume extra aspects, do not include any note , comments or suggestions in the contract. `;
-
-    const response = await model.generateContent(prompt);
-    const contractText = response.response.text();
-    const formattedText = convertMarkdownToHTML(contractText);
-
-    // Generate PDF from contract text
-    const pdfPath = await generatePDF(
-      formattedText,
-      contractDetails.contractorEmail
-    );
-
-    return { success: true, pdfPath };
-  } catch (error) {
-    console.error("Error generating contract:", error);
-    return { success: false, message: "Failed to generate contract." };
-  }
-}
-
-// Function to generate PDF
-function generatePDF(contractText, contractorEmail) {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument();
-    const pdfPath = `contracts/${contractorEmail}_contract.pdf`;
-    const stream = fs.createWriteStream(pdfPath);
-
-    doc.pipe(stream);
-    doc.fontSize(12).text(contractText, { align: "left" });
-    doc.end();
-
-    stream.on("finish", () => resolve(pdfPath));
-    stream.on("error", (err) => reject(err));
-  });
-}
-
-const generateContractPDF = async (req, res) => {
-  try {
-    const contract = await Contract.findById(req.params.id);
-    if (!contract) {
-      return res.status(404).json({ message: "Contract not found" });
-    }
-
-    const result = await generateContract(contract);
-
-    if (result.success) {
-      res.status(200).json({
-        message: "Contract PDF generated successfully",
-        pdfPath: result.pdfPath,
-      });
-    } else {
-      res.status(500).json({ message: result.message });
-    }
-  } catch (error) {
-    console.error("Error generating contract PDF:", error);
-    res.status(500).json({ message: "Server error", error });
+    console.error('Error rejecting contract:', error);
+    res.status(500).json({ error: 'Failed to reject contract' });
   }
 };
 
 const signContractByContractor = async (req, res) => {
   try {
-    const { digitalSignature, photoSignature } = req.body;
-    const contract = await Contract.findById(req.params.id);
+    const contractId = req.params.id;
+    const contract = await Contract.findById(contractId);
+    if (!contract) return res.status(404).json({ error: 'Contract not found' });
 
-    if (!contract)
-      return res.status(404).json({ message: "Contract not found" });
-
-    if (contract.signedBy.includes("contractor")) {
-      return res
-        .status(400)
-        .json({ message: "Contract already signed by contractor" });
-    }
-
-    contract.contractorSignature.digital = digitalSignature;
-    contract.contractorSignature.photo = photoSignature;
-    contract.signedBy.push("contractor");
     contract.status = "Signed by Contractor";
-
+    contract.signedBy.push('contractor');
+    contract.contractorSignature = req.body.signature;
     await contract.save();
 
-    // Send email to contractee to sign
-    const signUrl = `${process.env.BASE_URL}/api/contracts/signContract/contractee/${contract._id}`;
-    await sendEmail(
-      contract.contracteeEmail,
-      "Contract Ready for Your Signature",
-      `<p>The contract has been signed by ${contract.contractor}. Please sign it.</p>
-      <p><a href="${signUrl}">Sign Contract</a></p>`
-    );
+    // Generate and upload new version of PDF to IPFS
+    console.log('Generating updated PDF after contractor signature...');
+    const cid = await generateContractPDF(contract);
+    console.log('Updated PDF uploaded to IPFS. CID:', cid);
+    
+    // Add new CID to contract's history
+    contract.cids.push(cid);
+    await contract.save();
 
-    res.status(200).json({ message: "Contract signed by contractor" });
+    // Log contract signing details
+    console.log('Contract Signed by Contractor:', {
+      contractId: contract._id,
+      contractor: contract.contractor,
+      contractorEmail: contract.contractorEmail,
+      ipfsCID: cid,
+      timestamp: new Date().toISOString()
+    });
+
+    res.json({ 
+      message: 'Contract signed by contractor successfully',
+      ipfsUrl: `https://ipfs.io/ipfs/${cid}`,
+      cid: cid
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error('Error signing contract:', error);
+    res.status(500).json({ error: 'Failed to sign contract' });
   }
 };
 
 const signContractByContractee = async (req, res) => {
   try {
-    const { digitalSignature, photoSignature } = req.body;
-    const contract = await Contract.findById(req.params.id);
+    const contractId = req.params.id;
+    const contract = await Contract.findById(contractId);
+    if (!contract) return res.status(404).json({ error: 'Contract not found' });
 
-    if (!contract)
-      return res.status(404).json({ message: "Contract not found" });
-
-    if (!contract.signedBy.includes("contractor")) {
-      return res.status(400).json({ message: "Contractor must sign first" });
-    }
-
-    if (contract.signedBy.includes("contractee")) {
-      return res
-        .status(400)
-        .json({ message: "Contract already signed by contractee" });
-    }
-
-    contract.contracteeSignature.digital = digitalSignature;
-    contract.contracteeSignature.photo = photoSignature;
-    contract.signedBy.push("contractee");
-    contract.status = "Signed by Both";
-
+    contract.status = "Signed by Contractee";
+    contract.signedBy.push('contractee');
+    contract.contracteeSignature = req.body.signature;
     await contract.save();
 
-    // Generate signed contract PDF
-    await generateContractPDF(contract._id);
+    // Generate and upload new version of PDF to IPFS
+    console.log('Generating updated PDF after contractee signature...');
+    const cid = await generateContractPDF(contract);
+    console.log('Updated PDF uploaded to IPFS. CID:', cid);
+    
+    // Add new CID to contract's history
+    contract.cids.push(cid);
+    await contract.save();
 
-    // Notify both parties
-    await sendEmail(
-      contract.contractorEmail,
-      "Contract Fully Signed",
-      `<p>The contract has been signed by both parties. You can download the signed contract.</p>`
-    );
+    // Log contract signing details
+    console.log('Contract Signed by Contractee:', {
+      contractId: contract._id,
+      contractee: contract.contractee,
+      contracteeEmail: contract.contracteeEmail,
+      ipfsCID: cid,
+      timestamp: new Date().toISOString()
+    });
 
-    await sendEmail(
-      contract.contracteeEmail,
-      "Contract Fully Signed",
-      `<p>The contract has been signed by both parties. You can download the signed contract.</p>`
-    );
-
-    res.status(200).json({ message: "Contract signed by contractee" });
+    res.json({ 
+      message: 'Contract signed by contractee successfully',
+      ipfsUrl: `https://ipfs.io/ipfs/${cid}`,
+      cid: cid
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error('Error signing contract:', error);
+    res.status(500).json({ error: 'Failed to sign contract' });
+  }
+};
+
+const generatePDFForExistingContract = async (req, res) => {
+  try {
+    const contractId = req.params.id;
+    const contract = await Contract.findById(contractId);
+    
+    if (!contract) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    // Generate and upload PDF to IPFS
+    const cid = await generateContractPDF(contract);
+    contract.cids.push(cid);
+    await contract.save();
+
+    res.json({ 
+      message: 'PDF generated successfully',
+      cid,
+      ipfsUrl: `https://ipfs.io/ipfs/${cid}`
+    });
+  } catch (error) {
+    console.error('Error generating PDF for existing contract:', error);
+    res.status(500).json({ error: 'Failed to generate PDF' });
+  }
+};
+
+const updateContractStatusToExpired = async (req, res) => {
+  try {
+    console.log("Updating expired contracts...");
+    const currentDate = new Date();
+    
+    const result = await Contract.updateMany(
+      { 
+        endDate: { $lt: currentDate },
+        status: { $ne: "Expired" }
+      },
+      { $set: { status: "Expired" } }
+    );
+    
+    const expiredCount = await Contract.countDocuments({ status: "Expired" });
+    
+    res.json({ 
+      success: true, 
+      result,
+      totalExpired: expiredCount
+    });
+  } catch (error) {
+    console.error("Error updating contracts:", error);
+    res.status(500).json({ 
+      error: "Internal Server Error", 
+      details: error.message 
+    });
   }
 };
 
 module.exports = {
-  createContract,
   getContractsByEmail,
+  getContractById,
+  createContract,
   acceptContract,
   rejectContract,
-  generateContractPDF,
   signContractByContractor,
   signContractByContractee,
-  saveSignature,
+  generatePDFForExistingContract,
+  updateContractStatusToExpired
 };

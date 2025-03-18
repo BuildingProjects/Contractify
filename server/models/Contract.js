@@ -35,6 +35,7 @@ const ContractSchema = new mongoose.Schema({
     photo: { type: String, default: "" },
   },
   dynamicFields: { type: Object, default: {} }, // Stores variable fields
+  cids: { type: [String], default: [] } // Stores IPFS CIDs for all versions of the contract PDF
 });
 
 module.exports = mongoose.model("Contract", ContractSchema);

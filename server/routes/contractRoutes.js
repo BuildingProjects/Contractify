@@ -2,39 +2,32 @@ const express = require("express");
 const {
   createContract,
   getContractsByEmail,
+  getContractById,
   acceptContract,
   rejectContract,
-  generateContractPDF,
   signContractByContractor,
   signContractByContractee,
-  saveSignature,
+  generatePDFForExistingContract,
+  updateContractStatusToExpired
 } = require("../controllers/contractController");
-const {
-  updateContractStatusToExpired,
-} = require("../controllers/contractStatusController");
-const { verifyToken } = require("../utils/jwtHelper");
 const router = express.Router();
 
-router.post("/createContract", verifyToken, createContract);
-router.post("/signature", saveSignature);
-router.get("/getContracts/:email", verifyToken, getContractsByEmail);
-router.get("/acceptContract/:id", acceptContract);
-router.get("/rejectContract/:id", rejectContract);
-router.post(
-  "/signContract/contractor/:id",
-  verifyToken,
-  signContractByContractor
-);
-router.post(
-  "/signContract/contractee/:id",
-  verifyToken,
-  signContractByContractee
-);
-router.get("/generatePDF/:id", generateContractPDF);
-router.get(
-  "/updateContractStatusToExpired",
-  verifyToken,
-  updateContractStatusToExpired
-);
+// Routes without authentication
+router.post("/createContract", createContract);
+
+// Routes with authentication
+router.get("/getContracts/:email", getContractsByEmail);
+
+// Update expired contracts route
+router.get('/updateContractStatusToExpired', updateContractStatusToExpired);
+
+// Other routes with :id parameter
+router.get("/:id", getContractById);
+router.post("/:id/accept", acceptContract);
+router.post("/:id/reject", rejectContract);
+router.post("/:id/sign/contractor", signContractByContractor);
+router.post("/:id/sign/contractee", signContractByContractee);
+router.get("/:id/pdf", generatePDFForExistingContract);
+router.post("/:id/generate-pdf", generatePDFForExistingContract);
 
 module.exports = router;
