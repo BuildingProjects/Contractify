@@ -57,6 +57,7 @@ const CheckContractPage = () => {
   const [signatureImage, setSignatureImage] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [status, setStatus] = useState("Signed by Contractor");
   const [successMsg, setSuccessMsg] = useState("");
   const router = useRouter();
 
@@ -149,6 +150,8 @@ const CheckContractPage = () => {
           }),
         }
       );
+      console.log("Signing Contract Successfully..");
+      setLoading("Ongoing");
 
       const data = await response.json();
       if (!response.ok)
@@ -156,21 +159,12 @@ const CheckContractPage = () => {
 
       setSuccessMsg("Contract signed successfully!");
       setShowSignatureModal(false);
-
-      // Update contract status locally
-      setContracts((prevContracts) =>
-        prevContracts.map((contract) =>
-          contract._id === selectedContract._id
-            ? { ...contract, status: "Ongoing" }
-            : contract
-        )
-      );
+      setIsModalOpen(false);
+      setSelectedContract(null);
     } catch (error) {
       setErrorMsg(
         error.message || "An error occurred while signing the contract."
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -324,18 +318,18 @@ const CheckContractPage = () => {
                   <button
                     type='button'
                     onClick={() => {
-                      if (selectedContract?.status !== "Active") {
-                        setShowSignatureModal(true);
-                      }
+                      // if (selectedContract?.status !== "Active") {
+                      setShowSignatureModal(true);
+                      // }
                     }}
                     className={`w-full sm:flex-1 items-center gap-2 py-2 px-3 border rounded-lg transition-colors ${
-                      selectedContract?.status === "Active"
+                      status === "Ongoing"
                         ? "bg-green-600 text-white border-green-500 cursor-not-allowed"
                         : "text-blue-600 hover:text-blue-800 border-blue-300 hover:bg-blue-50"
                     }`}
-                    disabled={selectedContract?.status === "Active"}
+                    disabled={status === "Ongoing"}
                   >
-                    {selectedContract?.status === "Ongoing"
+                    {status === "Ongoing"
                       ? "Contract Signed ✅"
                       : "Sign Contract"}
                   </button>
