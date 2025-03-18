@@ -185,7 +185,7 @@ const createContract = async (req, res) => {
         digital: contractorSignature?.digital || "", // Ensure valid storage
         photo: contractorSignature?.photo || "",
       },
-      status: "Pending", // Default status
+      status: "Signed by Contractor", // Default status
       dynamicFields,
     });
     console.log(contractorSignature);
@@ -425,47 +425,50 @@ const signContractByContractor = async (req, res) => {
 
 const signContractByContractee = async (req, res) => {
   try {
-    const { digitalSignature, photoSignature } = req.body;
-    const contract = await Contract.findById(req.params.id);
+    console.log("Received contract signing request:", req.body.contractId);
 
-    if (!contract)
+    const { contractId, digitalSignature, photoSignature } = req.body;
+
+    if (!contractId) {
+      return res.status(400).json({ message: "Contract ID is required" });
+    }
+
+    const contract = await Contract.findById(contractId);
+
+    if (!contract) {
+      console.warn("Contract not found:", contractId);
       return res.status(404).json({ message: "Contract not found" });
-
-    if (!contract.signedBy.includes("contractor")) {
-      return res.status(400).json({ message: "Contractor must sign first" });
     }
 
-    if (contract.signedBy.includes("contractee")) {
-      return res
-        .status(400)
-        .json({ message: "Contract already signed by contractee" });
-    }
+    // Store contractee's signature
+    contract.contracteeSignature = {
+      digital: digitalSignature || "",
+      photo: photoSignature || "",
+    };
 
-    contract.contracteeSignature.digital = digitalSignature;
-    contract.contracteeSignature.photo = photoSignature;
-    contract.signedBy.push("contractee");
-    contract.status = "Signed by Both";
+    // Update contract status
+    contract.status = "Ongoing";
 
+    // Save contract
     await contract.save();
+    console.log("Contract updated to Ongoing:", contract._id);
 
-    // Generate signed contract PDF
-    await generateContractPDF(contract._id);
-
-    // Notify both parties
+    // Notify contract parties
     await sendEmail(
       contract.contractorEmail,
-      "Contract Fully Signed",
-      `<p>The contract has been signed by both parties. You can download the signed contract.</p>`
+      "Contract Signed & Active",
+      `<p>The contract has been signed by the contractee and is now active.</p>`
     );
 
     await sendEmail(
       contract.contracteeEmail,
-      "Contract Fully Signed",
-      `<p>The contract has been signed by both parties. You can download the signed contract.</p>`
+      "Contract Signed & Active",
+      `<p>You have successfully signed the contract. It is now active.</p>`
     );
 
-    res.status(200).json({ message: "Contract signed by contractee" });
+    res.status(200).json({ message: "Contract signed successfully" });
   } catch (error) {
+    console.error("Error signing contract:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };

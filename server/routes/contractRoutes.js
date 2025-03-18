@@ -20,16 +20,12 @@ router.post("/signature", saveSignature);
 router.get("/getContracts/:email", verifyToken, getContractsByEmail);
 router.get("/acceptContract/:id", acceptContract);
 router.get("/rejectContract/:id", rejectContract);
-router.post(
+router.put(
   "/signContract/contractor/:id",
   verifyToken,
   signContractByContractor
 );
-router.post(
-  "/signContract/contractee/:id",
-  verifyToken,
-  signContractByContractee
-);
+router.put("/signContractByContractee", verifyToken, signContractByContractee);
 router.get("/generatePDF/:id", generateContractPDF);
 router.get(
   "/updateContractStatusToExpired",
