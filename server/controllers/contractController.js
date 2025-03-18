@@ -185,7 +185,7 @@ const createContract = async (req, res) => {
         digital: contractorSignature?.digital || "", // Ensure valid storage
         photo: contractorSignature?.photo || "",
       },
-      status: "Pending", // Default status
+      status: "Signed by Contractor", // Default status
       dynamicFields,
     });
     console.log(contractorSignature);
