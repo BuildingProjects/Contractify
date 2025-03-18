@@ -224,45 +224,44 @@ const createContract = async (req, res) => {
 
 // Get  contracts by email (contractor or contractee)
 const getContractsByEmail = async (req, res) => {
-  // try {
-  //   // const email = req.params;
-  //   const email = req.body;
-  //   // let email = "kumarros2002@gmail.com";
-  //   // let query = {
-  //   //   $or: [{ contractorEmail: email }, { contracteeEmail: email }],
-  //   // };
-  //   let query = {
-  //     contractorEmail: email,
-  //   };
-  //   const contracts = await Contract.find(query);
-  //   res.status(200).json({ contracts });
-  // } catch (error) {
-  //   console.error("Error fetching contracts:", error);
-  //   res.status(500).json({ message: "Server error", error });
-  // }
   try {
-    console.log("Incoming request params:", req.params); // Debug request params
+    console.log("Incoming request params:", req.params);
+    console.log("User role:", req.user?.role); // Debugging role
 
     const { email } = req.params; // Extract email from URL
 
     if (!email) {
-      console.log("Error: Email is missing in request params"); // Debug missing email
+      console.log("Error: Email is missing in request params");
       return res.status(400).json({ message: "Email is required" });
     }
 
-    let query = {
-      contractorEmail: email, // Ensure it's a string
-    };
+    if (!req.user || !req.user.role) {
+      console.log("Error: User role is missing");
+      return res
+        .status(403)
+        .json({ message: "Unauthorized: Role is required" });
+    }
+
+    let query = {};
+
+    // Check if the user is a contractor or contractee
+    if (req.user.role === "Contractor") {
+      query = { contractorEmail: email };
+    } else if (req.user.role === "Contractee") {
+      query = { contracteeEmail: email };
+    } else {
+      return res.status(403).json({ message: "Unauthorized: Invalid role" });
+    }
 
     console.log("Query being executed:", query); // Debug query before execution
 
     const contracts = await Contract.find(query);
 
-    console.log("Contracts found:", contracts.length); // Debug number of contracts found
+    console.log("Contracts found:", contracts.length);
 
     res.status(200).json({ contracts });
   } catch (error) {
-    console.error("Error fetching contracts:", error); // Log the actual error
+    console.error("Error fetching contracts:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
