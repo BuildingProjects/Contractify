@@ -1197,6 +1197,7 @@ export default function CreateContractPage() {
           <div className='mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4'>
             <button
               type='submit'
+              onClick={handleSubmit}
               className='flex-1 bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md flex items-center justify-center gap-2'
             >
               <SaveIcon className='h-5 w-5' />

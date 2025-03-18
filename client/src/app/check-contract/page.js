@@ -161,7 +161,7 @@ const CheckContractPage = () => {
       setContracts((prevContracts) =>
         prevContracts.map((contract) =>
           contract._id === selectedContract._id
-            ? { ...contract, status: "Active" }
+            ? { ...contract, status: "Ongoing" }
             : contract
         )
       );
@@ -323,12 +323,24 @@ const CheckContractPage = () => {
                 {!isContractor && (
                   <button
                     type='button'
-                    onClick={() => setShowSignatureModal(true)}
-                    className='w-full sm:flex-1 items-center gap-2 text-blue-600 hover:text-blue-800 py-2 px-3 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors'
+                    onClick={() => {
+                      if (selectedContract?.status !== "Active") {
+                        setShowSignatureModal(true);
+                      }
+                    }}
+                    className={`w-full sm:flex-1 items-center gap-2 py-2 px-3 border rounded-lg transition-colors ${
+                      selectedContract?.status === "Active"
+                        ? "bg-green-600 text-white border-green-500 cursor-not-allowed"
+                        : "text-blue-600 hover:text-blue-800 border-blue-300 hover:bg-blue-50"
+                    }`}
+                    disabled={selectedContract?.status === "Active"}
                   >
-                    Sign Contract
+                    {selectedContract?.status === "Ongoing"
+                      ? "Contract Signed ✅"
+                      : "Sign Contract"}
                   </button>
                 )}
+
                 {/* {selectedContract.status !== "Active" && (
                     <button className="w-full sm:flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm">
                       Activate Contract
@@ -421,21 +433,6 @@ const CheckContractPage = () => {
         onClose={() => setShowSignatureModal(false)}
         onSave={handleSignContract}
       />
-      {selectedContract && (
-        <div className='fixed bottom-0 w-full bg-white p-4 shadow-md'>
-          {errorMsg && <p className='text-red-600'>{errorMsg}</p>}
-          {successMsg && <p className='text-green-600'>{successMsg}</p>}
-          <button
-            className={`w-full bg-blue-600 text-white py-2 px-4 rounded-lg transition-colors ${
-              loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
-            }`}
-            onClick={handleSignContract}
-            disabled={loading}
-          >
-            {loading ? "Signing..." : "Confirm & Sign Contract"}
-          </button>
-        </div>
-      )}
     </div>
   );
 };
