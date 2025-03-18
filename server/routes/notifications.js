@@ -1,5 +1,4 @@
 const express = require("express");
-
 const { verifyToken } = require("../utils/jwtHelper");
 const {
   getNotificationsByUser,
@@ -7,8 +6,9 @@ const {
 } = require("../controllers/notificationController");
 
 const router = express.Router();
+router.get("/", verifyToken, getNotificationsByUser);
 
-router.get("/notifications/:userId", verifyToken, getNotificationsByUser);
+// ✅ If marking notifications as read
 router.put("/markNotificationsAsRead", verifyToken, markNotificationsAsRead);
 
 module.exports = router;

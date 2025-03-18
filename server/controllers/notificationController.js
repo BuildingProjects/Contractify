@@ -1,35 +1,32 @@
 const Notification = require("../models/Notification");
 
-// ✅ Fetch unread notifications for a user
 const getNotificationsByUser = async (req, res) => {
   try {
-    const notifications = await Notification.find({
-      user: req.user.id,
-      isRead: false,
-    }).sort({ createdAt: -1 });
+    console.log("User object from token:", req.user);
+    const userId = req.user.id;
 
-    res.status(200).json({ success: true, notifications });
+    console.log("Fetching notifications for recipient ID:", userId);
+
+    const notifications = await Notification.find({ recipient: userId });
+
+    console.log("Notifications found:", notifications);
+
+    res.status(200).json(notifications);
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Error fetching notifications" });
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
-// ✅ Mark notifications as read
 const markNotificationsAsRead = async (req, res) => {
   try {
     await Notification.updateMany(
-      { user: req.user.id, isRead: false },
-      { isRead: true }
+      { recipient: req.user.id, isRead: false },
+      { $set: { isRead: true } }
     );
-    res
-      .status(200)
-      .json({ success: true, message: "Notifications marked as read." });
+    res.json({ success: true });
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Error marking notifications as read" });
+    res.status(500).json({ message: error.message });
   }
 };
 

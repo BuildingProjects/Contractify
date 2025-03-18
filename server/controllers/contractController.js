@@ -18,6 +18,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 const ImageKit = require("imagekit");
+const Notification = require("../models/Notification");
 const imagekit = new ImageKit({
   publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
   privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
@@ -124,6 +125,7 @@ const sendEmail = async (to, subject, html) => {
 //     res.status(500).json({ message: "Server error", error });
 //   }
 // };
+
 const createContract = async (req, res) => {
   try {
     console.log("Received request to create contract", req.body);
@@ -194,14 +196,16 @@ const createContract = async (req, res) => {
     console.log("Saving new contract to the database");
     await newContract.save();
     console.log("Contract saved successfully", newContract._id);
-    
+
     console.log("Creating a notification for contractee", contractee);
     await Notification.create({
-      user: contractee, // Contractee ID
+      recipient: existingContractee._id, // Store the contractee's user ID
+      sender: req.user.id, // Assuming the contractor is the logged-in user
+      contractId: newContract._id,
       message: `A new contract "${newContract._id}" has been assigned to you.`,
       isRead: false,
     });
-    
+
     // Sending email notification to contractee
     const acceptUrl = `${process.env.BASE_URL}/api/contracts/acceptContract/${newContract._id}`;
     const rejectUrl = `${process.env.BASE_URL}/api/contracts/rejectContract/${newContract._id}`;
