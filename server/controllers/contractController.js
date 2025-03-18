@@ -7,6 +7,8 @@ const fs = require("fs");
 const path = require("path");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const puppeteer = require("puppeteer");
+const axios = require("axios");
+// const ImageKit = require("imagekit");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -95,7 +97,7 @@ const sendEmail = async (to, subject, html) => {
 //       contractCategory,
 //       contractValue,
 //       contractCreationDate,
-//       startDate,
+//       startDate,s
 //       endDate,
 //       contractDescription,
 //       status: "Pending",
@@ -222,45 +224,44 @@ const createContract = async (req, res) => {
 
 // Get  contracts by email (contractor or contractee)
 const getContractsByEmail = async (req, res) => {
-  // try {
-  //   // const email = req.params;
-  //   const email = req.body;
-  //   // let email = "kumarros2002@gmail.com";
-  //   // let query = {
-  //   //   $or: [{ contractorEmail: email }, { contracteeEmail: email }],
-  //   // };
-  //   let query = {
-  //     contractorEmail: email,
-  //   };
-  //   const contracts = await Contract.find(query);
-  //   res.status(200).json({ contracts });
-  // } catch (error) {
-  //   console.error("Error fetching contracts:", error);
-  //   res.status(500).json({ message: "Server error", error });
-  // }
   try {
-    console.log("Incoming request params:", req.params); // Debug request params
+    console.log("Incoming request params:", req.params);
+    console.log("User role:", req.user?.role); // Debugging role
 
     const { email } = req.params; // Extract email from URL
 
     if (!email) {
-      console.log("Error: Email is missing in request params"); // Debug missing email
+      console.log("Error: Email is missing in request params");
       return res.status(400).json({ message: "Email is required" });
     }
 
-    let query = {
-      contractorEmail: email, // Ensure it's a string
-    };
+    if (!req.user || !req.user.role) {
+      console.log("Error: User role is missing");
+      return res
+        .status(403)
+        .json({ message: "Unauthorized: Role is required" });
+    }
+
+    let query = {};
+
+    // Check if the user is a contractor or contractee
+    if (req.user.role === "Contractor") {
+      query = { contractorEmail: email };
+    } else if (req.user.role === "Contractee") {
+      query = { contracteeEmail: email };
+    } else {
+      return res.status(403).json({ message: "Unauthorized: Invalid role" });
+    }
 
     console.log("Query being executed:", query); // Debug query before execution
 
     const contracts = await Contract.find(query);
 
-    console.log("Contracts found:", contracts.length); // Debug number of contracts found
+    console.log("Contracts found:", contracts.length);
 
     res.status(200).json({ contracts });
   } catch (error) {
-    console.error("Error fetching contracts:", error); // Log the actual error
+    console.error("Error fetching contracts:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
@@ -315,31 +316,32 @@ const convertMarkdownToHTML = (text) => {
   return text.replace(/\*\*(.*?)\*\*/g, "$1");
 };
 
-// Generate contract PDF content from gemini
-
 async function generateContract(contractDetails) {
   try {
-    console.log(contractDetails);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-    const prompt = `Generate a formal contract template based on the following details:
-        Contractor Email: ${contractDetails.contractorEmail}
-        Contractee Email: ${contractDetails.contracteeEmail}
-        Start Date: ${contractDetails.startTime}
-        End Date: ${contractDetails.endTime}
-        Additional Terms: ${JSON.stringify(contractDetails.dynamicFields)}
+    const prompt = `Generate a formal contract using the provided details:
+    Contract Category: ${contractDetails.contractCategory}
+    Contractor Name: ${contractDetails.contractor}
+    Contractee Name: ${contractDetails.contractee}
+    Contractor Email: ${contractDetails.contractorEmail}
+    Contractee Email: ${contractDetails.contracteeEmail}
+    Start Date: ${contractDetails.startDate}
+    End Date: ${contractDetails.endDate}
+    Contract Value: ${contractDetails.contractValue}
+    Contract Creation Date: ${contractDetails.contractCreationDate}
+    Contract Description: ${contractDetails.contractDescription}
+    Additional Terms: ${JSON.stringify(contractDetails.dynamicFields)}
 
-        Provide a structured contract format with necessary legal terms. only include the given details in the contract, do not add or assume extra aspects, do not include any note , comments or suggestions in the contract. `;
+    Provide a structured contract format with necessary legal terms. Ensure all provided details are accurately included.Do not include any unneccessary details like witnesses and signatures.`;
 
     const response = await model.generateContent(prompt);
-    const contractText = response.response.text();
-    const formattedText = convertMarkdownToHTML(contractText);
+    const contractText = convertMarkdownToHTML(response.response.text());
 
-    // Generate PDF from contract text
-    const pdfPath = await generatePDF(
-      formattedText,
-      contractDetails.contractorEmail
-    );
+    console.log("Generated Contract Text:", contractText); // Debugging
+
+    // Generate PDF using direct contract details
+    const pdfPath = await generatePDF(contractDetails, contractText);
 
     return { success: true, pdfPath };
   } catch (error) {
@@ -348,19 +350,124 @@ async function generateContract(contractDetails) {
   }
 }
 
-// Function to generate PDF
-function generatePDF(contractText, contractorEmail) {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument();
-    const pdfPath = `contracts/${contractorEmail}_contract.pdf`;
-    const stream = fs.createWriteStream(pdfPath);
+function generatePDF(contractDetails, contractText) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ margin: 50 });
+      let buffers = [];
 
-    doc.pipe(stream);
-    doc.fontSize(12).text(contractText, { align: "left" });
-    doc.end();
+      doc.on("data", (chunk) => buffers.push(chunk));
+      doc.on("end", async () => {
+        const pdfBuffer = Buffer.concat(buffers);
 
-    stream.on("finish", () => resolve(pdfPath));
-    stream.on("error", (err) => reject(err));
+        try {
+          const uploadResponse = await imagekit.upload({
+            file: pdfBuffer,
+            fileName: `${contractDetails.contractorEmail}_contract.pdf`,
+            folder: "/contracts/",
+          });
+
+          resolve(uploadResponse.url);
+        } catch (uploadError) {
+          console.error("Error uploading PDF:", uploadError);
+          reject(uploadError);
+        }
+      });
+
+      // **Title**
+      doc
+        .fontSize(18)
+        .font("Helvetica-Bold")
+        .text("Contract under Contractify", { align: "center" })
+        .moveDown(2);
+
+      // **Contract Details - Using contractDetails directly**
+      const addSection = (title, content) => {
+        doc.fontSize(14).font("Helvetica-Bold").text(title);
+        doc
+          .fontSize(12)
+          .font("Helvetica")
+          .text(content || "N/A")
+          .moveDown();
+      };
+
+      const formatAdditionalTerms = (dynamicFields) => {
+        if (!dynamicFields || Object.keys(dynamicFields).length === 0) {
+          return "None";
+        }
+        return Object.entries(dynamicFields)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join("\n");
+      };
+
+      addSection("Contract Category:", contractDetails.contractCategory);
+      addSection("Contractor Name:", contractDetails.contractor);
+      addSection("Contractee Name:", contractDetails.contractee);
+      addSection("Contractor Email:", contractDetails.contractorEmail);
+      addSection("Contractee Email:", contractDetails.contracteeEmail);
+      addSection("Start Date:", contractDetails.startDate);
+      addSection("End Date:", contractDetails.endDate);
+      addSection("Contract Value:", contractDetails.contractValue);
+      addSection(
+        "Contract Creation Date:",
+        contractDetails.contractCreationDate
+      );
+      addSection("Contract Description:", contractDetails.contractDescription);
+      addSection(
+        "Additional Terms:",
+        formatAdditionalTerms(contractDetails.dynamicFields)
+      );
+
+      doc.moveDown(2);
+
+      // **Full Contract Text**
+      doc
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Contract Terms & Conditions:");
+      doc.fontSize(12).font("Helvetica").text(contractText).moveDown(3);
+
+      // **Signature Section**
+      let yPosition = doc.y + 50;
+
+      if (contractDetails.contractorSignature?.digital) {
+        try {
+          const response = await axios.get(
+            contractDetails.contractorSignature.digital,
+            {
+              responseType: "arraybuffer",
+            }
+          );
+          const signatureBuffer = Buffer.from(response.data, "binary");
+
+          doc.image(signatureBuffer, 100, yPosition, { width: 150 });
+          doc.fontSize(12).text("Contractor Signature", 100, yPosition + 50);
+        } catch (err) {
+          console.error("Error fetching contractor signature:", err);
+        }
+      }
+
+      if (contractDetails.contracteeSignature?.digital) {
+        try {
+          const response = await axios.get(
+            contractDetails.contracteeSignature.digital,
+            {
+              responseType: "arraybuffer",
+            }
+          );
+          const signatureBuffer = Buffer.from(response.data, "binary");
+
+          doc.image(signatureBuffer, 350, yPosition, { width: 150 });
+          doc.fontSize(12).text("Contractee Signature", 350, yPosition + 50);
+        } catch (err) {
+          console.error("Error fetching contractee signature:", err);
+        }
+      }
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
