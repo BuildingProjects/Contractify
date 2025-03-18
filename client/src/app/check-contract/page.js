@@ -54,6 +54,10 @@ const CheckContractPage = () => {
   const [filteredContracts, setFilteredContracts] = useState([]);
   const [isContractor, setIsContractor] = useState(false);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [signatureImage, setSignatureImage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -117,6 +121,57 @@ const CheckContractPage = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedContract(null);
+  };
+
+  const handleSignContract = async (signatureImage, type = "digital") => {
+    if (!selectedContract || !signatureImage) {
+      setErrorMsg("Signature is required to sign the contract.");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(
+        `http://localhost:5000/api/contracts/signContractByContractee`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            contractId: selectedContract._id,
+            contracteeSignature: signatureImage,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.message || "Failed to sign the contract");
+
+      setSuccessMsg("Contract signed successfully!");
+      setShowSignatureModal(false);
+
+      // Update contract status locally
+      setContracts((prevContracts) =>
+        prevContracts.map((contract) =>
+          contract._id === selectedContract._id
+            ? { ...contract, status: "Active" }
+            : contract
+        )
+      );
+    } catch (error) {
+      setErrorMsg(
+        error.message || "An error occurred while signing the contract."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signContract = () => {
@@ -364,8 +419,23 @@ const CheckContractPage = () => {
       <SignatureModal
         isOpen={showSignatureModal}
         onClose={() => setShowSignatureModal(false)}
-        // onSave={saveSignature}
+        onSave={handleSignContract}
       />
+      {selectedContract && (
+        <div className='fixed bottom-0 w-full bg-white p-4 shadow-md'>
+          {errorMsg && <p className='text-red-600'>{errorMsg}</p>}
+          {successMsg && <p className='text-green-600'>{successMsg}</p>}
+          <button
+            className={`w-full bg-blue-600 text-white py-2 px-4 rounded-lg transition-colors ${
+              loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
+            }`}
+            onClick={handleSignContract}
+            disabled={loading}
+          >
+            {loading ? "Signing..." : "Confirm & Sign Contract"}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

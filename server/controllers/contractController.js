@@ -427,7 +427,7 @@ const signContractByContractee = async (req, res) => {
   try {
     console.log("Received contract signing request:", req.body.contractId);
 
-    const { contractId, digitalSignature, photoSignature } = req.body;
+    const { contractId, contracteeSignature } = req.body;
 
     if (!contractId) {
       return res.status(400).json({ message: "Contract ID is required" });
@@ -439,11 +439,11 @@ const signContractByContractee = async (req, res) => {
       console.warn("Contract not found:", contractId);
       return res.status(404).json({ message: "Contract not found" });
     }
+    console.log("url :", contracteeSignature);
 
     // Store contractee's signature
     contract.contracteeSignature = {
-      digital: digitalSignature || "",
-      photo: photoSignature || "",
+      digital: contracteeSignature,
     };
 
     // Update contract status
