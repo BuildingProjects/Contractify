@@ -7,15 +7,15 @@ const contractorUserSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     dob: { type: Date },
-    gender: { type: String, default: null  },
-    address: { type: String, default: null  },
-    pincode: { type: Number, default: null  },
-    city: { type: String, default: null  },
-    state: { type: String, default: null  },
+    gender: { type: String, default: null },
+    address: { type: String, default: null },
+    pincode: { type: Number, default: null },
+    city: { type: String, default: null },
+    state: { type: String, default: null },
     emailVerified: { type: Boolean, default: false },
     emailVerificationToken: { type: String },
-    resetToken: {type: String},
-    resetTokenExpiry: {type: Date}
+    resetToken: { type: String },
+    resetTokenExpiry: { type: Date },
   },
   { timestamps: true }
 );
@@ -28,21 +28,21 @@ contractorUserSchema.pre("save", async function (next) {
 });
 
 const contracteeUserSchema = new mongoose.Schema(
-    {
-        name: { type: String, required: true },
-        email: { type: String, required: true, unique: true },
-        password: { type: String, required: true },
-        dob: { type: Date },
-        gender: { type: String, default: null  },
-        address: { type: String, default: null  },
-        pincode: { type: Number, default: null  },
-        city: { type: String, default: null  },
-        state: { type: String, default: null  },
-        emailVerified: { type: Boolean, default: false },
-        emailVerificationToken: { type: String },
-        resetToken: {type: String},
-        resetTokenExpiry: {type: Date}
-      },
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    dob: { type: Date },
+    gender: { type: String, default: null },
+    address: { type: String, default: null },
+    pincode: { type: Number, default: null },
+    city: { type: String, default: null },
+    state: { type: String, default: null },
+    emailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String },
+    resetToken: { type: String },
+    resetTokenExpiry: { type: Date },
+  },
   { timestamps: true }
 );
 

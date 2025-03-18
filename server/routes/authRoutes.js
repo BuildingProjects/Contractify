@@ -5,6 +5,7 @@ const {
   contracteeLogin,
   contractorLogin,
   getToken,
+  logout,
 } = require("../controllers/authController");
 const {
   verifyContractorEmail,
@@ -41,5 +42,6 @@ router.post("/changePassword", verifyToken, changePassword);
 router.post("/forgotPassword", forgotPassword);
 router.post("/resetPassword", resetPassword);
 router.get("/get-token", getToken);
+router.get("/logOut", logout);
 
 module.exports = router;
