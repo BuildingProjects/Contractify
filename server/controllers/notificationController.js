@@ -31,7 +31,7 @@ const markNotificationsAsRead = async (req, res) => {
     );
 
     console.log("Notifications updated:", result.modifiedCount);
-
+    
     res.json({
       success: true,
       message: `${result.modifiedCount} notifications marked as read`,

@@ -204,7 +204,7 @@ const createContract = async (req, res) => {
       recipient: existingContractee._id, // Store the contractee's user ID
       sender: req.user.id, // Assuming the contractor is the logged-in user
       contractId: newContract._id,
-      message: `A new contract "${newContract._id}" has been assigned to you.`,
+      message: ` A new contract has been assigned to you by ${contractor}. Please review the details.`,
       isRead: false,
     });
 
