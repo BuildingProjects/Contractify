@@ -20,7 +20,9 @@ import {
   ClipboardIcon,
   IndianRupeeIcon,
   CheckCircle,
+  FileSignature,
 } from "lucide-react";
+import SignatureModal from "../components/SignatureModal";
 
 const statusColors = {
   Active: {
@@ -51,6 +53,12 @@ const CheckContractPage = () => {
   const [contracts, setContracts] = useState([]);
   const [filteredContracts, setFilteredContracts] = useState([]);
   const [isContractor, setIsContractor] = useState(false);
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [signatureImage, setSignatureImage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [status, setStatus] = useState("Signed by Contractor");
+  const [successMsg, setSuccessMsg] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -114,6 +122,60 @@ const CheckContractPage = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedContract(null);
+  };
+
+  const handleSignContract = async (signatureImage, type = "digital") => {
+    if (!selectedContract || !signatureImage) {
+      setErrorMsg("Signature is required to sign the contract.");
+      return;
+    }
+
+    setLoading(true); // Show loading state
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(
+        `${API_URL}/contracts/signContractByContractee`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            contractId: selectedContract._id,
+            contracteeSignature: signatureImage,
+          }),
+        }
+      );
+
+      console.log("Signing Contract Successfully..");
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to sign the contract");
+      }
+
+      setLoading(false); // Hide loader immediately
+      alert(
+        "Contract signed successfully! It is now active, and you can download it."
+      );
+
+      // Redirect quickly after alert
+      router.push("/dashboard");
+
+      // Reset modal and contract state
+      setShowSignatureModal(false);
+      setIsModalOpen(false);
+      setSelectedContract(null);
+    } catch (error) {
+      setLoading(false); // Hide loader in case of error
+      setErrorMsg(
+        error.message || "An error occurred while signing the contract."
+      );
+    }
   };
 
   const signContract = () => {
@@ -241,6 +303,15 @@ const CheckContractPage = () => {
 
                   <div>
                     <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
+                      <UserIcon className="h-3 w-3 sm:h-4 sm:w-4" /> Contractor
+                    </h3>
+                    <p className="mt-1 text-base sm:text-lg font-medium text-gray-900 break-words">
+                      {selectedContract.contractor}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
                       <IndianRupeeIcon className="h-3 w-3 sm:h-4 sm:w-4" />{" "}
                       Contract Value
                     </h3>
@@ -264,12 +335,43 @@ const CheckContractPage = () => {
               <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
                 {!isContractor && (
                   <button
-                    className="w-full sm:flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                    onClick={signContract}
+                    type="button"
+                    onClick={() => setShowSignatureModal(true)}
+                    className={`w-full sm:flex-1 items-center gap-2 py-2 px-3 border rounded-lg transition-colors ${
+                      loading
+                        ? "bg-gray-400 text-white cursor-not-allowed"
+                        : "text-blue-600 hover:text-blue-800 border-blue-300 hover:bg-blue-50"
+                    }`}
+                    disabled={loading}
                   >
-                    Sign Contract
+                    {loading ? (
+                      <span className="flex items-center">
+                        <svg
+                          className="animate-spin h-5 w-5 mr-2"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8z"
+                          ></path>
+                        </svg>
+                        Signing...
+                      </span>
+                    ) : (
+                      "Sign Contract"
+                    )}
                   </button>
                 )}
+
                 {/* {selectedContract.status !== "Active" && (
                     <button className="w-full sm:flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm">
                       Activate Contract
@@ -357,6 +459,11 @@ const CheckContractPage = () => {
           </div>
         </div>
       )}
+      <SignatureModal
+        isOpen={showSignatureModal}
+        onClose={() => setShowSignatureModal(false)}
+        onSave={handleSignContract}
+      />
     </div>
   );
 };
