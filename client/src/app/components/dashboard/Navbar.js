@@ -88,12 +88,6 @@ export default function Navbar() {
                     Profile
                   </button>
 
-                  <Link
-                    href="/settings"
-                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                  >
-                    Settings
-                  </Link>
                   <button className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">
                     Logout
                   </button>
