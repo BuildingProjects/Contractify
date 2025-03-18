@@ -49,10 +49,10 @@ export default function DashboardPage() {
           console.log("Decoded token:", decoded);
           setEmail(decoded.email);
         } else {
-          console.error("No token received");
+          console.log("No token received");
         }
       })
-      .catch((error) => console.error("Error fetching token:", error));
+      .catch((error) => console.log("Error fetching token:", error));
   }, []);
 
   // Separate useEffect to wait for email to be set
@@ -60,7 +60,7 @@ export default function DashboardPage() {
     const token = Cookies.get("authToken"); // Ensure the correct cookie name
     if (!token) {
       // If no token exists, redirect to login immediately
-      router.push("/login");
+      router.push("/");
       return;
     }
     if (!email) {
@@ -93,7 +93,7 @@ export default function DashboardPage() {
         calculateStatusCounts(data.contracts);
       })
       .catch((error) => {
-        console.error("Error fetching contracts:", error);
+        console.log("Error fetching contracts:", error);
       });
     console.log(contracts);
   }, [email]);
@@ -119,7 +119,7 @@ export default function DashboardPage() {
         console.log("Expired contracts updated:", data);
       })
       .catch((error) => {
-        console.error("Error updating expired contracts:", error);
+        console.log("Error updating expired contracts:", error);
       });
   }, []);
 
