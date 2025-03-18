@@ -419,7 +419,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Enhanced Contract Filter */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 mb-8">
           <h2 className="text-xl font-semibold text-gray-800">
             Contract Management
           </h2>
@@ -632,14 +632,17 @@ export default function DashboardPage() {
 
                 {/* Action buttons - responsive layout */}
                 <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
-                  {isContractor && (
-                    <button className="w-full sm:flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm">
-                      Edit Contract
+                  {isContractor &&
+                    selectedContract.status === "Signed by Contractor" && (
+                      <button className="w-full sm:flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                        Edit Contract
+                      </button>
+                    )}
+                  {selectedContract.status === "Ongoing" && (
+                    <button className="w-full sm:flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                      Download PDF
                     </button>
                   )}
-                  <button className="w-full sm:flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-                    Download PDF
-                  </button>
                   {/* {selectedContract.status !== "Active" && (
                     <button className="w-full sm:flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm">
                       Activate Contract
