@@ -57,6 +57,12 @@ export default function DashboardPage() {
 
   // Separate useEffect to wait for email to be set
   useEffect(() => {
+    const token = Cookies.get("authToken"); // Ensure the correct cookie name
+    if (!token) {
+      // If no token exists, redirect to login immediately
+      router.push("/login");
+      return;
+    }
     if (!email) {
       console.log("Email is required");
       return;
@@ -244,21 +250,21 @@ export default function DashboardPage() {
           {isContractor ? (
             <button
               onClick={handleCreateContract}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg 
+              className='w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg 
           hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 
-          focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg"
+          focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg'
             >
-              <PlusIcon className="h-5 w-5" />
+              <PlusIcon className='h-5 w-5' />
               Create New Contract
             </button>
           ) : (
             <button
               onClick={seeContractsReadyTobeSigned}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg 
+              className='w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg 
           hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 
-          focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg"
+          focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg'
             >
-              <CheckCircle className="h-5 w-5" />
+              <CheckCircle className='h-5 w-5' />
               Contracts Ready to be Signed
             </button>
           )}
@@ -354,9 +360,9 @@ export default function DashboardPage() {
                   {statusCounts["Pending"] || 0}
                 </p>
               </div>
-              <div className="bg-red-50 p-2 sm:p-4 rounded-lg text-center">
-                <p className="text-xs sm:text-sm text-gray-600">Expired</p>
-                <p className="text-xl sm:text-2xl font-bold text-red-600">
+              <div className='bg-red-50 p-2 sm:p-4 rounded-lg text-center'>
+                <p className='text-xs sm:text-sm text-gray-600'>Expired</p>
+                <p className='text-xl sm:text-2xl font-bold text-red-600'>
                   {statusCounts["Expired"] || 0}
                 </p>
               </div>
@@ -499,7 +505,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Display Contracts with responsive grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-4">
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-4'>
           {filteredContracts.map((contract) => {
             const statusColor = statusColors[contract.status] || {
               bg: "bg-gray-100",
@@ -510,11 +516,11 @@ export default function DashboardPage() {
             return (
               <div
                 key={contract._id}
-                className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform hover:scale-102 transition-all hover:shadow-xl"
+                className='bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform hover:scale-102 transition-all hover:shadow-xl'
                 onClick={() => openContractModal(contract)}
               >
-                <div className="flex items-center justify-between p-3 sm:p-4 border-b">
-                  <h3 className="font-semibold text-gray-800 truncate max-w-[70%]">
+                <div className='flex items-center justify-between p-3 sm:p-4 border-b'>
+                  <h3 className='font-semibold text-gray-800 truncate max-w-[70%]'>
                     {contract.contractCategory}
                   </h3>
                   <span
@@ -523,29 +529,29 @@ export default function DashboardPage() {
                     <span
                       className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${statusColor.indicator}`}
                     ></span>
-                    <span className="xs:inline">
+                    <span className='xs:inline'>
                       {contract.status || "Unknown"}
                     </span>
                   </span>
                 </div>
-                <div className="p-3 sm:p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="text-xs sm:text-sm text-gray-500 truncate max-w-[70%]">
+                <div className='p-3 sm:p-4'>
+                  <div className='flex justify-between items-center mb-2'>
+                    <p className='text-xs sm:text-sm text-gray-500 truncate max-w-[70%]'>
                       {contract.contractee}
                     </p>
-                    <p className="text-xs sm:text-sm font-semibold text-gray-800">
+                    <p className='text-xs sm:text-sm font-semibold text-gray-800'>
                       {contract.contractValue === "NA"
                         ? " "
                         : `₹${contract.contractValue}`}
                     </p>
                   </div>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className='text-xs text-gray-500 truncate'>
                     {contract.contractDescription}
                   </p>
                 </div>
-                <div className="bg-gray-50 px-3 sm:px-4 py-1.5 sm:py-2 text-xs text-gray-500 flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1">
-                  <span className="text-blue-600">View details</span>
-                  <span className="text-xs whitespace-nowrap">
+                <div className='bg-gray-50 px-3 sm:px-4 py-1.5 sm:py-2 text-xs text-gray-500 flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1'>
+                  <span className='text-blue-600'>View details</span>
+                  <span className='text-xs whitespace-nowrap'>
                     {new Date(contract.startDate).toLocaleDateString("en-GB")} -{" "}
                     {new Date(contract.endDate).toLocaleDateString("en-GB")}
                   </span>
@@ -631,13 +637,13 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Action buttons - responsive layout */}
-                <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+                <div className='mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4'>
                   {isContractor && (
-                    <button className="w-full sm:flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                    <button className='w-full sm:flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm'>
                       Edit Contract
                     </button>
                   )}
-                  <button className="w-full sm:flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                  <button className='w-full sm:flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm'>
                     Download PDF
                   </button>
                   {/* {selectedContract.status !== "Active" && (
