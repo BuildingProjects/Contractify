@@ -200,3 +200,13 @@ exports.contractorLogin = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+exports.logout = async (req, res) => {
+  try {
+    res.clearCookie("authToken");
+    res.status(200).json({status:"Success", message: "Logout successful" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({status:"Failed", error: "Internal server error" });
+  }
+}
