@@ -69,8 +69,8 @@ const CheckContractPage = () => {
 
   useEffect(() => {
     if (!email) return;
-
-    const uri = `http://localhost:5000/api/contracts/getContracts/${email}`;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const uri = `${API_URL}/contracts/getContracts/${email}`;
     fetch(uri, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
