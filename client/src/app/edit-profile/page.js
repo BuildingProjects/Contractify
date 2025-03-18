@@ -82,6 +82,14 @@ export default function EditProfilePage() {
     setError("");
 
     try {
+      const formattedDob = formData.dob
+        ? new Date(formData.dob).toISOString().split("T")[0]
+        : "";
+
+      const requestData = {
+        ...formData,
+        dob: formattedDob, // Ensure correct date format
+      };
       const endpoint =
         userType === "contractor"
           ? "/profile/editContractorProfile"
@@ -93,7 +101,8 @@ export default function EditProfilePage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        credentials: "include",
+        body: JSON.stringify(requestData),
       });
 
       const result = await res.json();
@@ -102,7 +111,10 @@ export default function EditProfilePage() {
         throw new Error(result.message || "Failed to update profile");
       }
 
-      router.push("/profile"); // Redirect to profile after successful update
+      // Show success message before redirecting
+      alert("Profile updated successfully!");
+
+      router.push("/profile-page"); // Redirect after successful update
     } catch (error) {
       setError(error.message);
     } finally {
@@ -162,7 +174,7 @@ export default function EditProfilePage() {
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
-                className="w-full mt-1 p-2 border rounded-md"
+                className="w-full mt-1 p-2 border rounded-md text-black"
               >
                 <option value="">Select Gender</option>
                 <option value="male">Male</option>
@@ -228,7 +240,7 @@ const InputField = ({ label, name, type = "text", value, onChange }) => (
       name={name}
       value={value}
       onChange={onChange}
-      className="w-full mt-1 p-2 border rounded-md"
+      className="w-full mt-1 p-2 border rounded-md text-black"
     />
   </div>
 );
