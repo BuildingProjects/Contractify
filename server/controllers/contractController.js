@@ -317,35 +317,32 @@ const convertMarkdownToHTML = (text) => {
   return text.replace(/\*\*(.*?)\*\*/g, "$1");
 };
 
-// Generate contract PDF content from gemini
-
 async function generateContract(contractDetails) {
   try {
-    // console.log(contractDetails);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-    const prompt = `Generate a formal contract template based on the following details:
-        Contractor Email: ${contractDetails.contractorEmail}
-        Contractee Email: ${contractDetails.contracteeEmail}
-        Start Date: ${contractDetails.startTime}
-        End Date: ${contractDetails.endTime}
-        Additional Terms: ${JSON.stringify(contractDetails.dynamicFields)}
+    const prompt = `Generate a formal contract using the provided details:
+    Contract Category: ${contractDetails.contractCategory}
+    Contractor Name: ${contractDetails.contractor}
+    Contractee Name: ${contractDetails.contractee}
+    Contractor Email: ${contractDetails.contractorEmail}
+    Contractee Email: ${contractDetails.contracteeEmail}
+    Start Date: ${contractDetails.startDate}
+    End Date: ${contractDetails.endDate}
+    Contract Value: ${contractDetails.contractValue}
+    Contract Creation Date: ${contractDetails.contractCreationDate}
+    Contract Description: ${contractDetails.contractDescription}
+    Additional Terms: ${JSON.stringify(contractDetails.dynamicFields)}
 
-        Provide a structured contract format with necessary legal terms. 
-        Only include the given details in the contract, do not add or assume extra aspects, do not include any note , comments or suggestions in the contract.
-        inportant note: do not leave the signature section  for now or any  label for "Contractor Sign" and "Contractee Sign" also no message or suggession in response `;
+    Provide a structured contract format with necessary legal terms. Ensure all provided details are accurately included.Do not include any unneccessary details like witnesses and signatures.`;
 
     const response = await model.generateContent(prompt);
-    const contractText = response.response.text();
-    const formattedText = convertMarkdownToHTML(contractText);
+    const contractText = convertMarkdownToHTML(response.response.text());
 
-    // Generate PDF from contract text
-    const pdfPath = await generatePDF(
-      formattedText,
-      contractDetails.contractorEmail,
-      contractDetails.contractorSignature.digital,
-      contractDetails.contracteeSignature.digital
-    );
+    console.log("Generated Contract Text:", contractText); // Debugging
+
+    // Generate PDF using direct contract details
+    const pdfPath = await generatePDF(contractDetails, contractText);
 
     return { success: true, pdfPath };
   } catch (error) {
@@ -354,75 +351,117 @@ async function generateContract(contractDetails) {
   }
 }
 
-// Function to generate PDF
-function generatePDF(
-  contractText,
-  contractorEmail,
-  ContractorSignatureURL,
-  ContracteeSignatureURL
-) {
+function generatePDF(contractDetails, contractText) {
   return new Promise(async (resolve, reject) => {
     try {
-      const doc = new PDFDocument();
+      const doc = new PDFDocument({ margin: 50 });
       let buffers = [];
 
       doc.on("data", (chunk) => buffers.push(chunk));
       doc.on("end", async () => {
         const pdfBuffer = Buffer.concat(buffers);
 
-        // Upload to ImageKit
         try {
           const uploadResponse = await imagekit.upload({
             file: pdfBuffer,
-            fileName: `${contractorEmail}_contract.pdf`,
+            fileName: `${contractDetails.contractorEmail}_contract.pdf`,
             folder: "/contracts/",
           });
 
-          resolve(uploadResponse.url); // Return the uploaded file URL
+          resolve(uploadResponse.url);
         } catch (uploadError) {
-          console.error("Error uploading PDF to ImageKit:", uploadError);
+          console.error("Error uploading PDF:", uploadError);
           reject(uploadError);
         }
       });
 
-      doc.fontSize(12).text(contractText, { align: "left" });
+      // **Title**
+      doc
+        .fontSize(18)
+        .font("Helvetica-Bold")
+        .text("Contract under Contractify", { align: "center" })
+        .moveDown(2);
 
-      let textLines = contractText.split("\n");
-      let signPosition = null;
+      // **Contract Details - Using contractDetails directly**
+      const addSection = (title, content) => {
+        doc.fontSize(14).font("Helvetica-Bold").text(title);
+        doc
+          .fontSize(12)
+          .font("Helvetica")
+          .text(content || "N/A")
+          .moveDown();
+      };
 
-      for (let line of textLines) {
-        if (line.toLowerCase().includes("contractor sign")) {
-          signPosition = doc.y;
-          break; // Ensure only one signature placement
+      const formatAdditionalTerms = (dynamicFields) => {
+        if (!dynamicFields || Object.keys(dynamicFields).length === 0) {
+          return "None";
+        }
+        return Object.entries(dynamicFields)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join("\n");
+      };
+
+      addSection("Contract Category:", contractDetails.contractCategory);
+      addSection("Contractor Name:", contractDetails.contractor);
+      addSection("Contractee Name:", contractDetails.contractee);
+      addSection("Contractor Email:", contractDetails.contractorEmail);
+      addSection("Contractee Email:", contractDetails.contracteeEmail);
+      addSection("Start Date:", contractDetails.startDate);
+      addSection("End Date:", contractDetails.endDate);
+      addSection("Contract Value:", contractDetails.contractValue);
+      addSection(
+        "Contract Creation Date:",
+        contractDetails.contractCreationDate
+      );
+      addSection("Contract Description:", contractDetails.contractDescription);
+      addSection(
+        "Additional Terms:",
+        formatAdditionalTerms(contractDetails.dynamicFields)
+      );
+
+      doc.moveDown(2);
+
+      // **Full Contract Text**
+      doc
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Contract Terms & Conditions:");
+      doc.fontSize(12).font("Helvetica").text(contractText).moveDown(3);
+
+      // **Signature Section**
+      let yPosition = doc.y + 50;
+
+      if (contractDetails.contractorSignature?.digital) {
+        try {
+          const response = await axios.get(
+            contractDetails.contractorSignature.digital,
+            {
+              responseType: "arraybuffer",
+            }
+          );
+          const signatureBuffer = Buffer.from(response.data, "binary");
+
+          doc.image(signatureBuffer, 100, yPosition, { width: 150 });
+          doc.fontSize(12).text("Contractor Signature", 100, yPosition + 50);
+        } catch (err) {
+          console.error("Error fetching contractor signature:", err);
         }
       }
 
-      if (ContractorSignatureURL) {
+      if (contractDetails.contracteeSignature?.digital) {
         try {
-          const response = await axios.get(ContractorSignatureURL, {
-            responseType: "arraybuffer",
-          });
+          const response = await axios.get(
+            contractDetails.contracteeSignature.digital,
+            {
+              responseType: "arraybuffer",
+            }
+          );
           const signatureBuffer = Buffer.from(response.data, "binary");
 
-          const yPosition = signPosition || doc.y + 20;
-          doc.image(signatureBuffer, 100, yPosition, { width: 300 });
-          doc.fontSize(12).text("Contractor Signature", { align: "left" });
+          doc.image(signatureBuffer, 350, yPosition, { width: 150 });
+          doc.fontSize(12).text("Contractee Signature", 350, yPosition + 50);
         } catch (err) {
-          console.error("Error fetching signature image:", err);
-        }
-      }
-      if (ContracteeSignatureURL) {
-        try {
-          const response = await axios.get(ContracteeSignatureURL, {
-            responseType: "arraybuffer",
-          });
-          const signatureBuffer = Buffer.from(response.data, "binary");
-
-          const yPosition = signPosition || doc.y + 40;
-          doc.image(signatureBuffer, 100, yPosition, { width: 300 });
-          doc.fontSize(12).text("Contractee Signature",100,doc.y+40, { align: "left" });
-        } catch (err) {
-          console.error("Error fetching signature image:", err);
+          console.error("Error fetching contractee signature:", err);
         }
       }
 
