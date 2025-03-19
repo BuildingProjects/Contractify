@@ -303,6 +303,15 @@ const CheckContractPage = () => {
 
                   <div>
                     <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
+                      <UserIcon className="h-3 w-3 sm:h-4 sm:w-4" /> Contractor
+                    </h3>
+                    <p className="mt-1 text-base sm:text-lg font-medium text-gray-900 break-words">
+                      {selectedContract.contractor}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-2">
                       <IndianRupeeIcon className="h-3 w-3 sm:h-4 sm:w-4" />{" "}
                       Contract Value
                     </h3>
