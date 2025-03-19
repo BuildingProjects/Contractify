@@ -136,7 +136,6 @@ const createContract = async (req, res) => {
     const {
       contractor,
       contractee,
-      contractorEmail,
       contracteeEmail,
       contractCategory,
       contractValue,
@@ -148,6 +147,7 @@ const createContract = async (req, res) => {
       contractorSignature,
       ...dynamicFields
     } = req.body;
+    const contractorEmail = req.user.email;
 
     console.log("Extracted contract details", {
       contractor,
