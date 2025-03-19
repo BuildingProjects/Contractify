@@ -51,6 +51,41 @@ const saveSignature = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+const getContract = async (req, res) => {
+  try {
+    console.log("Received request to fetch contract", req.params.contractId);
+
+    const { contractId } = req.params; // Extract contract ID from request params
+    const userEmail = req.user.email; // Get the logged-in user's email
+
+    console.log("Fetching contract from database", contractId);
+    const contract = await Contract.findById(contractId);
+
+    if (!contract) {
+      console.warn("Contract not found", contractId);
+      return res.status(404).json({ message: "Contract not found" });
+    }
+
+    // Ensure only the contractor or contractee can view the contract
+    if (
+      contract.contractorEmail !== userEmail &&
+      contract.contracteeEmail !== userEmail
+    ) {
+      console.warn("Unauthorized contract access attempt by", userEmail);
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to view this contract" });
+    }
+
+    console.log("Contract retrieved successfully", contractId);
+    res
+      .status(200)
+      .json({ message: "Contract retrieved successfully", contract });
+  } catch (error) {
+    console.error("Error fetching contract:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
 //function to send email
 const sendEmail = async (to, subject, html) => {
@@ -229,6 +264,73 @@ const createContract = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating contract:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+const editContract = async (req, res) => {
+  try {
+    console.log("Received request to edit contract", req.body);
+
+    const { contractId } = req.params; // Extract contract ID from request params
+    const contractorEmail = req.user.email;
+
+    console.log("Fetching contract from database", contractId);
+    const contract = await Contract.findById(contractId);
+
+    if (!contract) {
+      console.warn("Contract not found", contractId);
+      return res.status(404).json({ message: "Contract not found" });
+    }
+
+    // Ensure only the contractor can edit the contract
+    if (contract.contractorEmail !== contractorEmail) {
+      console.warn("Unauthorized contract edit attempt by", contractorEmail);
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to edit this contract" });
+    }
+
+    console.log("Updating contract details");
+    Object.assign(contract, req.body); // ✅ Update all fields dynamically
+
+    await contract.save();
+    console.log("Contract updated successfully", contract._id);
+
+    // Fetch contractee user from the database (Fix for ObjectId issue)
+    const contracteeUser = await ContracteeUser.findOne({
+      email: contract.contracteeEmail,
+    });
+    if (!contracteeUser) {
+      return res
+        .status(404)
+        .json({ message: "Contractee not found in the database" });
+    }
+
+    console.log("Creating notification for contractee", contract.contractee);
+    await Notification.create({
+      recipient: contracteeUser._id, // ✅ Use ObjectId instead of email
+      sender: req.user.id,
+      contractId: contract._id,
+      message: `The contract from ${contract.contractor} has been updated. Please review the changes.`,
+      isRead: false,
+    });
+
+    // Sending email notification to contractee
+    console.log("Sending email to contractee", contract.contracteeEmail);
+    await sendEmail(
+      contract.contracteeEmail,
+      "Contract Updated",
+      `<p>Your contract with ${contract.contractor} has been updated.</p>
+       <p>Please review the changes and take necessary actions.</p>`
+    );
+    console.log("Email sent successfully to", contract.contracteeEmail);
+
+    res
+      .status(200)
+      .json({ message: "Contract updated successfully", contract });
+  } catch (error) {
+    console.error("Error editing contract:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
@@ -492,8 +594,8 @@ const generateContractPDF = async (req, res) => {
     const result = await generateContract(contract);
 
     if (result.success) {
-        contract.contractpdfurl = result.pdfPath;
-        await contract.save();
+      contract.contractpdfurl = result.pdfPath;
+      await contract.save();
       res.status(200).json({
         message: "Contract PDF generated successfully",
         pdfPath: result.pdfPath,
@@ -592,19 +694,17 @@ const signContractByContractee = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
-const downloadPDF = async (req, res)=>{
-    const contract = await Contract.findById(req.params.id);
-    if (!contract) {
-        return res.status(404).json({ message: "Contract not found" });
-    }
-    const pdfpath = contract.contractpdfurl;
-    if (!pdfpath) {
-        return res.status(404).json({ message: "PDF not generated yet" });
-    }
-    res.status(200).json({ status: "success", pdfurl: pdfpath });
-
-}
-
+const downloadPDF = async (req, res) => {
+  const contract = await Contract.findById(req.params.id);
+  if (!contract) {
+    return res.status(404).json({ message: "Contract not found" });
+  }
+  const pdfpath = contract.contractpdfurl;
+  if (!pdfpath) {
+    return res.status(404).json({ message: "PDF not generated yet" });
+  }
+  res.status(200).json({ status: "success", pdfurl: pdfpath });
+};
 
 module.exports = {
   createContract,
@@ -615,5 +715,7 @@ module.exports = {
   signContractByContractor,
   signContractByContractee,
   saveSignature,
-    downloadPDF
+  downloadPDF,
+  editContract,
+  getContract,
 };
