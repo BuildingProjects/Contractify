@@ -44,6 +44,7 @@ exports.contractorSignup = async (req, res) => {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
+        domain: "contractify-backend.onrender.com",
         maxAge: 24 * 60 * 60 * 1000, // 1 hour in milliseconds
       })
       .status(201)
@@ -109,6 +110,7 @@ exports.contracteeSignup = async (req, res) => {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
+        domain: "contractify-backend.onrender.com",
         maxAge: 24 * 60 * 60 * 1000,
       })
       .status(201)
@@ -151,6 +153,7 @@ exports.contracteeLogin = async (req, res) => {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "strict", // Prevent CSRF attacks
+        domain: "contractify-backend.onrender.com",
         maxAge: 24 * 60 * 60 * 1000, // 1 hour in milliseconds
       })
       .status(200)
@@ -191,6 +194,7 @@ exports.contractorLogin = async (req, res) => {
         // secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         secure: true, // Use secure cookies in production
         sameSite: "None", // Prevent CSRF attacks
+        domain: "contractify-backend.onrender.com",
         maxAge: 24 * 60 * 60 * 1000, // 1 hour in milliseconds
       })
       .status(200)
