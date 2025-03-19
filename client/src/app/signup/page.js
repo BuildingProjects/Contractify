@@ -1,10 +1,17 @@
 "use client";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SignupPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignUp />
+    </Suspense>
+  );
+}
+const SignUp = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [stage, setStage] = useState("signup"); // 'signup' or 'otp'
@@ -454,4 +461,4 @@ export default function SignupPage() {
       </motion.div>
     </motion.div>
   );
-}
+};
