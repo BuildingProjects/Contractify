@@ -89,7 +89,7 @@ const EditContract = () => {
     const fetchContractData = async () => {
       try {
         const response = await fetch(
-          `${API_URL}/contracts/getContract/${contractId}`,
+          `${API_URL}/api/contracts/getContract/${contractId}`,
           {
             method: "GET",
             credentials: "include",
@@ -270,7 +270,7 @@ const EditContract = () => {
 
     try {
       const response = await fetch(
-        `${API_URL}/contracts/editContract/${contractId}`,
+        `${API_URL}/api/contracts/editContract/${contractId}`,
         {
           method: "PUT",
           headers: {

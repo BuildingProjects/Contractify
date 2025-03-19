@@ -78,7 +78,7 @@ const CheckContractPage = () => {
   useEffect(() => {
     if (!email) return;
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const uri = `${API_URL}/contracts/getContracts/${email}`;
+    const uri = `${API_URL}/api/contracts/getContracts/${email}`;
     fetch(uri, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -137,7 +137,7 @@ const CheckContractPage = () => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(
-        `${API_URL}/contracts/signContractByContractee`,
+        `${API_URL}/api/contracts/signContractByContractee`,
         {
           method: "PUT",
           headers: {
@@ -158,7 +158,7 @@ const CheckContractPage = () => {
         throw new Error(data.message || "Failed to sign the contract");
       }
       const response_pdf = await fetch(
-        `${API_URL}/contracts/generatePDF/${selectedContract._id}`,
+        `${API_URL}/api/contracts/generatePDF/${selectedContract._id}`,
         {
           method: "GET",
           headers: {

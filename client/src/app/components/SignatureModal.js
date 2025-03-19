@@ -77,7 +77,7 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
     if (!signature) return;
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/contracts/signature`, {
+      const response = await fetch(`${API_URL}/api/contracts/signature`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

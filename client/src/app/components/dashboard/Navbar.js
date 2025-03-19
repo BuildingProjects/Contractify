@@ -25,7 +25,7 @@ export default function Navbar({ contractorName }) {
       const token = Cookies.get("authToken");
       if (!token) return;
 
-      const response = await fetch(`${API_URL}/notifications`, {
+      const response = await fetch(`${API_URL}/api/notifications`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -52,7 +52,7 @@ export default function Navbar({ contractorName }) {
       if (!token) return;
 
       const response = await fetch(
-        `${API_URL}/notifications/markNotificationsAsRead`,
+        `${API_URL}/api/notifications/markNotificationsAsRead`,
         {
           method: "PUT",
           headers: {
