@@ -14,6 +14,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const { generateContractPDF } = require("../utils/pdfGenerator");
 const { sendContractEmails } = require("../utils/emailService");
+const { exec } = require('child_process');
 
 // Validate required environment variables
 const requiredEnvVars = [
@@ -147,6 +148,7 @@ const createContract = async (req, res) => {
     // Generate and upload PDF to IPFS via Pinata
     console.log('Generating PDF for contract...');
     let cid;
+    let txHash;
     try {
       cid = await generateContractPDF(savedContract);
       console.log('PDF generated and uploaded to IPFS. CID:', cid);
@@ -156,6 +158,9 @@ const createContract = async (req, res) => {
       await savedContract.save({ session });
       console.log('Updated contract with CID');
 
+      // Instead of direct blockchain interaction, use API endpoint
+      // await storeCIDOnChain(contractId, cid);
+      
       // Log contract details with CID
       console.log('Contract Details:', {
         contractId: savedContract._id,
@@ -165,12 +170,13 @@ const createContract = async (req, res) => {
         value: savedContract.contractValue,
         startDate: savedContract.startDate,
         endDate: savedContract.endDate,
-        ipfsCID: cid
+        ipfsCID: cid,
+        blockchainTxHash: txHash
       });
     } catch (pdfError) {
-      console.error('Error generating PDF:', pdfError);
-      // If PDF generation fails, we should still save the contract but log the error
-      console.error('Contract created but PDF generation failed:', pdfError.message);
+      console.error('Error generating PDF or storing on blockchain:', pdfError);
+      // If PDF generation or blockchain storage fails, we should still save the contract but log the error
+      console.error('Contract created but PDF/blockchain operation failed:', pdfError.message);
     }
 
     // Send email notifications
@@ -191,7 +197,8 @@ const createContract = async (req, res) => {
       message: "Contract created successfully",
       pdfUrl: `${process.env.BASE_URL}/contracts/${savedContract._id}/pdf`,
       ipfsUrl: cid ? `https://ipfs.io/ipfs/${cid}` : null,
-      cid: cid // Include CID in response
+      cid: cid,
+      blockchainTxHash: txHash // Include transaction hash in response
     });
   } catch (error) {
     await session.abortTransaction();
@@ -261,19 +268,26 @@ const signContractByContractor = async (req, res) => {
     contract.cids.push(cid);
     await contract.save();
 
+    // Store new CID on blockchain
+    console.log('Storing new CID on blockchain...');
+    const txHash = await storeCIDOnChain(contract._id.toString(), cid);
+    console.log('New CID stored on blockchain. Transaction hash:', txHash);
+
     // Log contract signing details
     console.log('Contract Signed by Contractor:', {
       contractId: contract._id,
       contractor: contract.contractor,
       contractorEmail: contract.contractorEmail,
       ipfsCID: cid,
+      blockchainTxHash: txHash,
       timestamp: new Date().toISOString()
     });
 
     res.json({ 
       message: 'Contract signed by contractor successfully',
       ipfsUrl: `https://ipfs.io/ipfs/${cid}`,
-      cid: cid
+      cid: cid,
+      blockchainTxHash: txHash
     });
   } catch (error) {
     console.error('Error signing contract:', error);
@@ -301,19 +315,26 @@ const signContractByContractee = async (req, res) => {
     contract.cids.push(cid);
     await contract.save();
 
+    // Store new CID on blockchain
+    console.log('Storing new CID on blockchain...');
+    const txHash = await storeCIDOnChain(contract._id.toString(), cid);
+    console.log('New CID stored on blockchain. Transaction hash:', txHash);
+
     // Log contract signing details
     console.log('Contract Signed by Contractee:', {
       contractId: contract._id,
       contractee: contract.contractee,
       contracteeEmail: contract.contracteeEmail,
       ipfsCID: cid,
+      blockchainTxHash: txHash,
       timestamp: new Date().toISOString()
     });
 
     res.json({ 
       message: 'Contract signed by contractee successfully',
       ipfsUrl: `https://ipfs.io/ipfs/${cid}`,
-      cid: cid
+      cid: cid,
+      blockchainTxHash: txHash
     });
   } catch (error) {
     console.error('Error signing contract:', error);
@@ -324,25 +345,78 @@ const signContractByContractee = async (req, res) => {
 const generatePDFForExistingContract = async (req, res) => {
   try {
     const contractId = req.params.id;
+    const { transactionHash, contractAddress } = req.body;
     const contract = await Contract.findById(contractId);
     
     if (!contract) {
       return res.status(404).json({ error: 'Contract not found' });
     }
 
-    // Generate and upload PDF to IPFS
-    const cid = await generateContractPDF(contract);
+    // Log incoming request details
+    console.log('\n=== PDF Generation Request ===');
+    console.log('Contract ID:', contractId);
+    console.log('Original Transaction Hash:', transactionHash);
+    console.log('Contract Address:', contractAddress);
+    console.log('Current CIDs:', contract.cids);
+    console.log('============================\n');
+
+    // Generate and upload PDF to IPFS with transaction hash and contract address
+    console.log('Generating PDF with blockchain details...');
+    const cid = await generateContractPDF(contract, transactionHash, contractAddress);
+    console.log('New IPFS CID generated:', cid);
+
+    // Update contract with new CID
     contract.cids.push(cid);
     await contract.save();
+    console.log('Contract updated with new CID');
+
+    // Store new CID on blockchain
+    console.log('\n=== Storing CID on Blockchain ===');
+    const txHash = await storeCIDOnChain(contract._id.toString(), cid);
+    console.log('Transaction Hash:', txHash);
+    console.log('Contract ID:', contract._id.toString());
+    console.log('IPFS CID:', cid);
+    console.log('==============================\n');
+
+    // Log complete transaction details
+    console.log('\n=== Complete Transaction Details ===');
+    console.log({
+      contractId: contract._id,
+      category: contract.contractCategory,
+      status: contract.status,
+      originalTransactionHash: transactionHash,
+      newTransactionHash: txHash,
+      contractAddress: contractAddress,
+      ipfsCID: cid,
+      allCIDs: contract.cids,
+      timestamp: new Date().toISOString()
+    });
+    console.log('================================\n');
 
     res.json({ 
       message: 'PDF generated successfully',
       cid,
-      ipfsUrl: `https://ipfs.io/ipfs/${cid}`
+      pdfUrl: `https://ipfs.io/ipfs/${cid}`,
+      blockchainTxHash: txHash,
+      contractDetails: {
+        id: contract._id,
+        category: contract.contractCategory,
+        status: contract.status,
+        originalTransactionHash: transactionHash,
+        contractAddress: contractAddress
+      }
     });
   } catch (error) {
-    console.error('Error generating PDF for existing contract:', error);
-    res.status(500).json({ error: 'Failed to generate PDF' });
+    console.error('\n=== Error in PDF Generation ===');
+    console.error('Error Type:', error.name);
+    console.error('Error Message:', error.message);
+    console.error('Stack Trace:', error.stack);
+    console.error('============================\n');
+    
+    res.status(500).json({ 
+      error: 'Failed to generate PDF',
+      details: error.message
+    });
   }
 };
 

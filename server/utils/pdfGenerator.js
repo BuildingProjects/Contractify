@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { uploadToIPFS } = require('./ipfsUtils');
 
-const generateContractPDF = async (contract) => {
+const generateContractPDF = async (contract, transactionHash = null, contractAddress = null) => {
   try {
     // Create a new PDF document
     const pdfDoc = await PDFDocument.create();
@@ -36,6 +36,10 @@ ${contract.contractDescription}
 SIGNATURES
 ${contract.contractorSignature ? 'Contractor Signature: [Signed]' : 'Contractor Signature: [Pending]'}
 ${contract.contracteeSignature ? 'Contractee Signature: [Signed]' : 'Contractee Signature: [Pending]'}
+
+BLOCKCHAIN VERIFICATION
+${transactionHash ? `Transaction Hash: ${transactionHash}` : 'Transaction Hash: Not Available'}
+${contractAddress ? `Contract Address: ${contractAddress}` : 'Contract Address: Not Available'}
 `;
 
     // Add the content to the page
@@ -67,7 +71,7 @@ ${contract.contracteeSignature ? 'Contractee Signature: [Signed]' : 'Contractee 
     return ipfsResponse.IpfsHash;
   } catch (error) {
     console.error('Error generating PDF:', error);
-    throw new Error('Failed to generate and store PDF');
+    throw error;
   }
 };
 
