@@ -77,6 +77,7 @@ export default function LoginPage() {
 
       const res = await fetch(apiUrl, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: formData.email,
