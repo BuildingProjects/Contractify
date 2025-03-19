@@ -37,7 +37,7 @@ export default function DashboardPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // In your first useEffect where you decode the token
   useEffect(() => {
-    fetch(`${API_URL}/auth/get-token`, {
+    fetch(`${API_URL}/api/auth/get-token`, {
       method: "GET",
       credentials: "include", // Ensure cookies are sent
     })
@@ -72,9 +72,9 @@ export default function DashboardPage() {
 
     console.log(
       "Making API request to:",
-      `${API_URL}/contracts/getContracts/${email}`
+      `${API_URL}/api/contracts/getContracts/${email}`
     );
-    const uri = `${API_URL}/contracts/getContracts/${email}`;
+    const uri = `${API_URL}/api/contracts/getContracts/${email}`;
     fetch(uri, {
       method: "GET",
       headers: {
@@ -111,7 +111,7 @@ export default function DashboardPage() {
   useEffect(() => {
     console.log("Updating expired contracts...");
 
-    fetch(`${API_URL}/contracts/updateContractStatusToExpired`, {
+    fetch(`${API_URL}/api/contracts/updateContractStatusToExpired`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -203,7 +203,7 @@ export default function DashboardPage() {
   };
 
   const downloadfunc = () => {
-    fetch(`${API_URL}/contracts/downloadPDF/${selectedContract._id}`, {
+    fetch(`${API_URL}/api/contracts/downloadPDF/${selectedContract._id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
