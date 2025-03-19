@@ -9,6 +9,7 @@ const {
   signContractByContractee,
   saveSignature,
   downloadPDF,
+  editContract,
 } = require("../controllers/contractController");
 const {
   updateContractStatusToExpired,
@@ -17,6 +18,7 @@ const { verifyToken } = require("../utils/jwtHelper");
 const router = express.Router();
 
 router.post("/createContract", verifyToken, createContract);
+router.put("/editContract/:contractId", verifyToken, editContract);
 router.post("/signature", saveSignature);
 router.get("/getContracts/:email", verifyToken, getContractsByEmail);
 router.get("/acceptContract/:id", acceptContract);
