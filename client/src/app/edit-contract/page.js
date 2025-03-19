@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   CalendarIcon,
@@ -15,6 +15,13 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 
 export default function EditContractPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditContract />
+    </Suspense>
+  );
+}
+const EditContract = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const contractId = searchParams.get("id");
@@ -88,24 +95,26 @@ export default function EditContractPage() {
             credentials: "include",
           }
         );
-    
+
         if (!response.ok) {
           throw new Error("Failed to fetch contract data");
         }
-    
+
         const data = await response.json();
         console.log("Fetched contract data:", data);
-        
+
         // The contract object is nested inside the response
         const contractData = data.contract;
-    
+
         // Extract custom fields from the dynamicFields object
-        const customFieldsArray = contractData.dynamicFields 
-          ? Object.entries(contractData.dynamicFields).map(([field, value]) => ({ field, value }))
+        const customFieldsArray = contractData.dynamicFields
+          ? Object.entries(contractData.dynamicFields).map(
+              ([field, value]) => ({ field, value })
+            )
           : [];
-    
+
         setCustomFields(customFieldsArray);
-    
+
         // Update form data with the fetched contract data
         setFormData({
           contractCategory: contractData.contractCategory || "",
@@ -125,7 +134,7 @@ export default function EditContractPage() {
             photo: "",
           },
         });
-    
+
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching contract data:", error);
@@ -746,4 +755,4 @@ export default function EditContractPage() {
       </main>
     </div>
   );
-}
+};
