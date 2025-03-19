@@ -10,6 +10,7 @@ const {
   saveSignature,
   downloadPDF,
   editContract,
+  getContract,
 } = require("../controllers/contractController");
 const {
   updateContractStatusToExpired,
@@ -21,6 +22,7 @@ router.post("/createContract", verifyToken, createContract);
 router.put("/editContract/:contractId", verifyToken, editContract);
 router.post("/signature", saveSignature);
 router.get("/getContracts/:email", verifyToken, getContractsByEmail);
+router.get("/getContract/:contractId", verifyToken, getContract);
 router.get("/acceptContract/:id", acceptContract);
 router.get("/rejectContract/:id", rejectContract);
 router.put(

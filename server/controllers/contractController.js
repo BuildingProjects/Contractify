@@ -51,6 +51,41 @@ const saveSignature = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+const getContract = async (req, res) => {
+  try {
+    console.log("Received request to fetch contract", req.params.contractId);
+
+    const { contractId } = req.params; // Extract contract ID from request params
+    const userEmail = req.user.email; // Get the logged-in user's email
+
+    console.log("Fetching contract from database", contractId);
+    const contract = await Contract.findById(contractId);
+
+    if (!contract) {
+      console.warn("Contract not found", contractId);
+      return res.status(404).json({ message: "Contract not found" });
+    }
+
+    // Ensure only the contractor or contractee can view the contract
+    if (
+      contract.contractorEmail !== userEmail &&
+      contract.contracteeEmail !== userEmail
+    ) {
+      console.warn("Unauthorized contract access attempt by", userEmail);
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to view this contract" });
+    }
+
+    console.log("Contract retrieved successfully", contractId);
+    res
+      .status(200)
+      .json({ message: "Contract retrieved successfully", contract });
+  } catch (error) {
+    console.error("Error fetching contract:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
 //function to send email
 const sendEmail = async (to, subject, html) => {
@@ -682,4 +717,5 @@ module.exports = {
   saveSignature,
   downloadPDF,
   editContract,
+  getContract,
 };
