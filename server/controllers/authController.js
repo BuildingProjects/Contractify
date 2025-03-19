@@ -188,8 +188,9 @@ exports.contractorLogin = async (req, res) => {
     res
       .cookie("authToken", token, {
         httpOnly: true, // Ensures the cookie is sent only in HTTP(S) requests
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        sameSite: "strict", // Prevent CSRF attacks
+        // secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        secure: true, // Use secure cookies in production
+        sameSite: "None", // Prevent CSRF attacks
         maxAge: 24 * 60 * 60 * 1000, // 1 hour in milliseconds
       })
       .status(200)
@@ -204,9 +205,9 @@ exports.contractorLogin = async (req, res) => {
 exports.logout = async (req, res) => {
   try {
     res.clearCookie("authToken");
-    res.status(200).json({status:"Success", message: "Logout successful" });
+    res.status(200).json({ status: "Success", message: "Logout successful" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({status:"Failed", error: "Internal server error" });
+    res.status(500).json({ status: "Failed", error: "Internal server error" });
   }
-}
+};
