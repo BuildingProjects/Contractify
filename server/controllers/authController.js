@@ -57,6 +57,7 @@ exports.contractorSignup = async (req, res) => {
   }
 };
 exports.getToken = async (req, res) => {
+  console.log("Cookies received:", req.cookies);
   try {
     // Retrieve token from cookies
     const token = req.cookies.authToken;
