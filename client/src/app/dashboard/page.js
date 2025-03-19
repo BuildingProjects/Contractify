@@ -198,6 +198,29 @@ export default function DashboardPage() {
     setSelectedContract(null);
   };
 
+    const downloadfunc = () => {
+    fetch(`${API_URL}/contracts/downloadPDF/${selectedContract._id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // This is critical - it includes cookies in the request
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("API Response:", data.pdfurl);
+        window.open(data.pdfurl);
+      })
+        .catch((error) => {
+        console.log("Error fetching contracts:", error);
+        });
+    };
+
   // Status colors mapping
   const statusColors = {
     Active: {
@@ -663,7 +686,9 @@ export default function DashboardPage() {
                       </button>
                     )}
                   {selectedContract.status === "Ongoing" && (
-                    <button className="w-full sm:flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                    <button 
+                    onClick={downloadfunc}
+                    className="w-full sm:flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm">
                       Download PDF
                     </button>
                   )}

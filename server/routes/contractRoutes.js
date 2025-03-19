@@ -8,6 +8,7 @@ const {
   signContractByContractor,
   signContractByContractee,
   saveSignature,
+  downloadPDF,
 } = require("../controllers/contractController");
 const {
   updateContractStatusToExpired,
@@ -27,6 +28,7 @@ router.put(
 );
 router.put("/signContractByContractee", verifyToken, signContractByContractee);
 router.get("/generatePDF/:id", generateContractPDF);
+router.get("/downloadPDF/:id", downloadPDF);
 router.get(
   "/updateContractStatusToExpired",
   verifyToken,
