@@ -136,7 +136,6 @@ const createContract = async (req, res) => {
     const {
       contractor,
       contractee,
-      contractorEmail,
       contracteeEmail,
       contractCategory,
       contractValue,
@@ -148,6 +147,7 @@ const createContract = async (req, res) => {
       contractorSignature,
       ...dynamicFields
     } = req.body;
+    const contractorEmail = req.user.email;
 
     console.log("Extracted contract details", {
       contractor,
@@ -492,6 +492,8 @@ const generateContractPDF = async (req, res) => {
     const result = await generateContract(contract);
 
     if (result.success) {
+        contract.contractpdfurl = result.pdfPath;
+        await contract.save();
       res.status(200).json({
         message: "Contract PDF generated successfully",
         pdfPath: result.pdfPath,
@@ -590,6 +592,19 @@ const signContractByContractee = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+const downloadPDF = async (req, res)=>{
+    const contract = await Contract.findById(req.params.id);
+    if (!contract) {
+        return res.status(404).json({ message: "Contract not found" });
+    }
+    const pdfpath = contract.contractpdfurl;
+    if (!pdfpath) {
+        return res.status(404).json({ message: "PDF not generated yet" });
+    }
+    res.status(200).json({ status: "success", pdfurl: pdfpath });
+
+}
+
 
 module.exports = {
   createContract,
@@ -600,4 +615,5 @@ module.exports = {
   signContractByContractor,
   signContractByContractee,
   saveSignature,
+    downloadPDF
 };

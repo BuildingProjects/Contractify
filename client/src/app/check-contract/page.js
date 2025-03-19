@@ -157,7 +157,20 @@ const CheckContractPage = () => {
         const data = await response.json();
         throw new Error(data.message || "Failed to sign the contract");
       }
-
+      const response_pdf = await fetch(
+        `${API_URL}/contracts/generatePDF/${selectedContract._id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+        );
+        if (!response_pdf.ok) {
+            const data = await response.json();
+            throw new Error(data.message || "Failed to sign the contract");
+          }
       setLoading(false); // Hide loader immediately
       alert(
         "Contract signed successfully! It is now active, and you can download it."
