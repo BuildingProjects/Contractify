@@ -16,7 +16,7 @@ const notificationRoutes = require("./routes/notifications");
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
-
+const frontendUrl = process.env.CLIENT_URL;
 // Connect to MongoDB
 connectDB();
 
@@ -24,7 +24,7 @@ connectDB();
 app.use(
   cors({
     // origin: process.env.CLIENT_URL, // Adjust to your frontend URL
-    origin: "http://localhost:3000",
+    origin: { frontendUrl },
     methods: "GET, POST, PUT, DELETE",
     credentials: true,
   })
