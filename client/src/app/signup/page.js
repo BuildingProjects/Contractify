@@ -64,8 +64,8 @@ const SignUp = () => {
       try {
         const apiUrl =
           formData.userType === "contractor"
-            ? `${API_URL}/auth/contractorSignup`
-            : `${API_URL}/auth/contracteeSignup`;
+            ? `${API_URL}/api/auth/contractorSignup`
+            : `${API_URL}/api/auth/contracteeSignup`;
 
         const requestBody = {
           name: formData.name,
@@ -100,8 +100,8 @@ const SignUp = () => {
       try {
         const apiUrl =
           formData.userType === "contractor"
-            ? `${API_URL}/auth/verifyContractorEmail`
-            : `${API_URL}/auth/verifyContracteeEmail`;
+            ? `${API_URL}/api/auth/verifyContractorEmail`
+            : `${API_URL}/api/auth/verifyContracteeEmail`;
 
         console.log(formData.email, formData.otp);
 
@@ -137,7 +137,7 @@ const SignUp = () => {
     if (!canResend) return;
 
     try {
-      const resendRes = await fetch(`${API_URL}/auth/resend-otp`, {
+      const resendRes = await fetch(`${API_URL}/api/auth/resend-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email }),

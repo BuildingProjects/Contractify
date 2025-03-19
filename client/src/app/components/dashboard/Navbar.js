@@ -89,7 +89,7 @@ export default function Navbar({ contractorName }) {
         return;
       }
 
-      const response = await fetch(`${API_URL}/auth/logOut`, {
+      const response = await fetch(`${API_URL}/api/auth/logOut`, {
         method: "GET",
         credentials: "include",
       });

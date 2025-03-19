@@ -39,7 +39,7 @@ export default function CreateContractPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
-    fetch(`${API_URL}/auth/get-token`, {
+    fetch(`${API_URL}/api/auth/get-token`, {
       method: "GET",
       credentials: "include", // Ensure cookies are sent
     })
