@@ -17,8 +17,8 @@ import { jwtDecode } from "jwt-decode";
 export default function EditContractPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const contractId = searchParams.get('id');
-  
+  const contractId = searchParams.get("id");
+
   const [formData, setFormData] = useState({
     contractCategory: "",
     contractor: "",
@@ -81,32 +81,31 @@ export default function EditContractPage() {
 
     const fetchContractData = async () => {
       try {
-        const response = await fetch(`${API_URL}/contracts/getContract/${contractId}`, {
-          method: "GET",
-          credentials: "include",
-        });
-
+        const response = await fetch(
+          `${API_URL}/contracts/getContract/${contractId}`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+    
         if (!response.ok) {
           throw new Error("Failed to fetch contract data");
         }
-
-        const contractData = await response.json();
-        console.log("Fetched contract data:", contractData);
-
-        // Extract custom fields from the contract data
-        const standardFields = [
-          "contractCategory", "contractor", "contractee", "contractorEmail", 
-          "contracteeEmail", "contractValue", "contractCreationDate", 
-          "startDate", "endDate", "contractDescription", "contractorSignature",
-          "_id", "__v", "status", "createdAt", "updatedAt"
-        ];
-
-        const extractedCustomFields = Object.keys(contractData)
-          .filter(key => !standardFields.includes(key))
-          .map(key => ({ field: key, value: contractData[key] }));
-
-        setCustomFields(extractedCustomFields);
-
+    
+        const data = await response.json();
+        console.log("Fetched contract data:", data);
+        
+        // The contract object is nested inside the response
+        const contractData = data.contract;
+    
+        // Extract custom fields from the dynamicFields object
+        const customFieldsArray = contractData.dynamicFields 
+          ? Object.entries(contractData.dynamicFields).map(([field, value]) => ({ field, value }))
+          : [];
+    
+        setCustomFields(customFieldsArray);
+    
         // Update form data with the fetched contract data
         setFormData({
           contractCategory: contractData.contractCategory || "",
@@ -115,7 +114,9 @@ export default function EditContractPage() {
           contractorEmail: contractData.contractorEmail || "",
           contracteeEmail: contractData.contracteeEmail || "",
           contractValue: contractData.contractValue || "",
-          contractCreationDate: contractData.contractCreationDate?.split("T")[0] || new Date().toISOString().split("T")[0],
+          contractCreationDate:
+            contractData.contractCreationDate?.split("T")[0] ||
+            new Date().toISOString().split("T")[0],
           startDate: contractData.startDate?.split("T")[0] || "",
           endDate: contractData.endDate?.split("T")[0] || "",
           contractDescription: contractData.contractDescription || "",
@@ -124,7 +125,7 @@ export default function EditContractPage() {
             photo: "",
           },
         });
-        
+    
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching contract data:", error);
@@ -132,7 +133,6 @@ export default function EditContractPage() {
         router.push("/dashboard");
       }
     };
-
     fetchContractData();
   }, [contractId, router, API_URL]);
 
@@ -249,9 +249,9 @@ export default function EditContractPage() {
 
     // Form is valid, prepare payload with custom fields
     let payload = { ...formData };
-    
+
     // Add custom fields to payload
-    customFields.forEach(field => {
+    customFields.forEach((field) => {
       if (field.field && field.field.trim()) {
         payload[field.field] = field.value;
       }
@@ -260,14 +260,17 @@ export default function EditContractPage() {
     console.log("Submitting updated contract form with payload:", payload);
 
     try {
-      const response = await fetch(`${API_URL}/contracts/editContract/${contractId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${API_URL}/contracts/editContract/${contractId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+          credentials: "include",
+        }
+      );
 
       console.log("Response status:", response.status);
       const responseData = await response.json();
@@ -278,7 +281,9 @@ export default function EditContractPage() {
         router.push("/dashboard");
       } else {
         alert(
-          `Failed to update contract: ${responseData.message || "Unknown error"}`
+          `Failed to update contract: ${
+            responseData.message || "Unknown error"
+          }`
         );
       }
     } catch (error) {
@@ -291,10 +296,10 @@ export default function EditContractPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-lg text-gray-700">Loading contract data...</p>
+      <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto'></div>
+          <p className='mt-4 text-lg text-gray-700'>Loading contract data...</p>
         </div>
       </div>
     );
@@ -640,7 +645,7 @@ export default function EditContractPage() {
               ))}
             </div>
           </div>
-          
+
           {/* Signature Section */}
           <div className='mt-6'>
             <label className='block text-sm font-medium text-gray-700 mb-2'>
@@ -683,7 +688,7 @@ export default function EditContractPage() {
               )}
             </div>
           </div>
-          
+
           {/* Submit Buttons */}
           <div className='mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4'>
             <button
@@ -730,7 +735,7 @@ export default function EditContractPage() {
               Cancel
             </button>
           </div>
-          
+
           {/* Signature Modal */}
           <SignatureModal
             isOpen={showSignatureModal}
