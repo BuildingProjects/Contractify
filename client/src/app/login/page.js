@@ -72,8 +72,8 @@ export default function LoginPage() {
     try {
       const apiUrl =
         formData.userType === "contractor"
-          ? `${API_URL}/auth/contractorLogin`
-          : `${API_URL}/auth/contracteeLogin`;
+          ? `${API_URL}/api/auth/contractorLogin`
+          : `${API_URL}/api/auth/contracteeLogin`;
 
       const res = await fetch(apiUrl, {
         method: "POST",
