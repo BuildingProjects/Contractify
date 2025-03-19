@@ -11,6 +11,8 @@ import {
 import Navbar from "../components/dashboard/Navbar";
 import SignatureModal from "../components/SignatureModal"; // Add this import
 import { FileSignature } from "lucide-react"; // Add this to your imports
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 export default function CreateContractPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -35,6 +37,34 @@ export default function CreateContractPage() {
   const [wordCount, setWordCount] = useState(0);
   const [email, setEmail] = useState(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+  useEffect(() => {
+    fetch(`${API_URL}/auth/get-token`, {
+      method: "GET",
+      credentials: "include", // Ensure cookies are sent
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.token) {
+          console.log("Token received from backend:", data.token);
+          const decoded = jwtDecode(data.token);
+          console.log("Decoded token:", decoded);
+          setEmail(decoded.email);
+        } else {
+          console.log("No token received");
+        }
+      })
+      .catch((error) => console.log("Error fetching token:", error));
+  }, []);
+
+  const [contractorName, setContractorName] = useState("");
+
+  useEffect(() => {
+    const name = localStorage.getItem("userName");
+    console.log(name);
+    setContractorName(name);
+  }, []);
+
   // Count words in description
   useEffect(() => {
     const words = formData.contractDescription.trim()
@@ -42,26 +72,6 @@ export default function CreateContractPage() {
       : 0;
     setWordCount(words);
   }, [formData.contractDescription]);
-
-  useEffect(() => {
-      fetch(`${API_URL}/auth/get-token`, {
-        method: "GET",
-        credentials: "include", // Ensure cookies are sent
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.token) {
-            console.log("Token received from backend:", data.token);
-            const decoded = jwtDecode(data.token);
-            console.log("Decoded token:", decoded);
-            setEmail(decoded.email);
-            
-          } else {
-            console.log("No token received");
-          }
-        })
-        .catch((error) => console.log("Error fetching token:", error));
-    }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -124,8 +134,8 @@ export default function CreateContractPage() {
       newErrors.contractor = "Contractor name is required";
     if (!formData.contractee)
       newErrors.contractee = "Contractee name is required";
-    if (!formData.contractorEmail)
-      newErrors.contractorEmail = "Contractor email is required";
+    // if (!formData.contractorEmail)
+    //   newErrors.contractorEmail = "Contractor email is required";
     if (!formData.contracteeEmail)
       newErrors.contracteeEmail = "Contractee email is required";
     if (!formData.startDate) newErrors.startDate = "Start date is required";
@@ -209,9 +219,14 @@ export default function CreateContractPage() {
     }
   };
 
+  const getUserName = () => {
+    const name = localStorage.getItem("contractorName");
+    console.log(name);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar contractorName={contractorName} />
       <main className="pt-16 sm:pt-20 px-3 sm:px-6 lg:px-8 max-w-4xl mx-auto pb-12">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -345,7 +360,8 @@ export default function CreateContractPage() {
                 Contractor Email*
               </label>
               <input
-                type="email" disabled
+                type="email"
+                disabled
                 id="contractorEmail"
                 name="contractorEmail"
                 value={formData.contractorEmail}
