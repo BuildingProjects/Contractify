@@ -7,12 +7,6 @@ const connectDB = require("./utils/db");
 // Load environment variables
 dotenv.config();
 
-// Import routes
-const authRoutes = require("./routes/authRoutes");
-const profileRoutes = require("./routes/profileRoutes");
-const contractRoutes = require("./routes/contractRoutes");
-const notificationRoutes = require("./routes/notifications");
-
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +26,12 @@ app.use(
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+
+// Import routes
+const authRoutes = require("./routes/authRoutes");
+const profileRoutes = require("./routes/profileRoutes");
+const contractRoutes = require("./routes/contractRoutes");
+const notificationRoutes = require("./routes/notifications");
 
 //for testing
 app.get("/api/Api", (req, res) => {
