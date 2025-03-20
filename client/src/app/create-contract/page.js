@@ -37,7 +37,8 @@ export default function CreateContractPage() {
   const [wordCount, setWordCount] = useState(0);
   const [email, setEmail] = useState(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const dateInputRef = useRef(null);
+  const startDateInputRef = useRef(null);
+  const endDateInputRef = useRef(null);
   useEffect(() => {
     fetch(`${API_URL}/api/auth/get-token`, {
       method: "GET",
@@ -447,11 +448,11 @@ export default function CreateContractPage() {
                   className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.startDate ? "border-red-500" : "border-gray-300"
                   }`}
-                  ref={dateInputRef} // Add ref to access the input element
+                  ref={startDateInputRef} // Add ref to access the input element
                 />
                 <CalendarIcon
                   className='absolute right-3 top-2.5 h-5 w-5 text-gray-400 cursor-pointer'
-                  onClick={() => dateInputRef.current.showPicker()} // Open native date picker on icon click
+                  onClick={() => startDateInputRef.current.showPicker()} // Open native date picker on icon click
                 />
               </div>
               {errors.startDate && (
@@ -462,7 +463,7 @@ export default function CreateContractPage() {
             {/* End Date */}
             <div>
               <label
-                htmlFor='startDate'
+                htmlFor='endDate'
                 className='block text-sm font-medium text-gray-700 mb-1'
               >
                 End Date*
@@ -475,17 +476,17 @@ export default function CreateContractPage() {
                   value={formData.endDate}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.startDate ? "border-red-500" : "border-gray-300"
+                    errors.endDate ? "border-red-500" : "border-gray-300"
                   }`}
-                  ref={dateInputRef} // Add ref to access the input element
+                  ref={endDateInputRef} // Add ref to access the input element
                 />
                 <CalendarIcon
                   className='absolute right-3 top-2.5 h-5 w-5 text-gray-400 cursor-pointer'
-                  onClick={() => dateInputRef.current.showPicker()} // Open native date picker on icon click
+                  onClick={() => endDateInputRef.current.showPicker()} // Open native date picker on icon click
                 />
               </div>
-              {errors.startDate && (
-                <p className='mt-1 text-sm text-red-500'>{errors.startDate}</p>
+              {errors.endDate && (
+                <p className='mt-1 text-sm text-red-500'>{errors.endDate}</p>
               )}
             </div>
           </div>
