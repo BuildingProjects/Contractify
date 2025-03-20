@@ -25,6 +25,7 @@ import {
 import FeaturesSlider from "../components/dashboard/FeaturesSlider";
 import Navbar from "../components/dashboard/Navbar";
 import { useRouter } from "next/navigation";
+import Loader from "../components/Loader";
 
 export default function DashboardPage() {
   const [email, setEmail] = useState(null);
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [statusCounts, setStatusCounts] = useState({});
   const [isContractor, setIsContractor] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // In your first useEffect where you decode the token
@@ -59,6 +61,7 @@ export default function DashboardPage() {
 
   // Separate useEffect to wait for email to be set
   useEffect(() => {
+    setLoading(true);
     const token = Cookies.get("authToken"); // Ensure the correct cookie name
     if (!token) {
       // If no token exists, redirect to login immediately
@@ -104,6 +107,7 @@ export default function DashboardPage() {
       .catch((error) => {
         console.log("Error fetching contracts:", error);
       });
+    setLoading(false);
     console.log(contracts);
   }, [email]);
 
@@ -273,7 +277,9 @@ export default function DashboardPage() {
       indicator: "bg-green-500",
     },
   };
-
+  // if (loading) {
+  //   return <Loader />;
+  // }
   return (
     <div className='min-h-screen bg-gray-50'>
       <Navbar contractorName={contractorName} />
@@ -686,14 +692,19 @@ export default function DashboardPage() {
                   {isContractor &&
                     selectedContract.status === "Signed by Contractor" && (
                       <button
-                      onClick={() => {
-                        localStorage.setItem("editContract", JSON.stringify(selectedContract));
-                        router.push(`/edit-contract?id=${selectedContract._id}`);
-                      }}
-                      className='w-full sm:flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm'
-                    >
-                      Edit Contract
-                    </button>
+                        onClick={() => {
+                          localStorage.setItem(
+                            "editContract",
+                            JSON.stringify(selectedContract)
+                          );
+                          router.push(
+                            `/edit-contract?id=${selectedContract._id}`
+                          );
+                        }}
+                        className='w-full sm:flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm'
+                      >
+                        Edit Contract
+                      </button>
                     )}
                   {selectedContract.status === "Ongoing" && (
                     <button

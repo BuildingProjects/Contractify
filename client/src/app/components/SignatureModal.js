@@ -6,6 +6,7 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
   const [activeTab, setActiveTab] = useState("draw"); // "draw" or "upload"
   const [signature, setSignature] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [lastPosition, setLastPosition] = useState({ x: 0, y: 0 });
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const canvasRef = useRef(null);
@@ -37,6 +38,36 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
     contextRef.current.beginPath();
     contextRef.current.moveTo(offsetX, offsetY);
     setIsDrawing(true);
+  };
+  const handleTouchStart = (e) => {
+    e.preventDefault(); // Prevent scrolling when drawing
+    const touch = e.touches[0];
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    setIsDrawing(true);
+    setLastPosition({ x, y });
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDrawing) return;
+    e.preventDefault(); // Prevent scrolling when drawing
+
+    const touch = e.touches[0];
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    ctx.beginPath();
+    ctx.moveTo(lastPosition.x, lastPosition.y);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    setLastPosition({ x, y });
   };
 
   const finishDrawing = () => {
@@ -72,7 +103,7 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
     }
   };
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  
+
   const saveSignature = async () => {
     if (!signature) return;
     setLoading(true);
@@ -112,25 +143,25 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop"
+      className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop'
       onClick={handleOutsideClick}
     >
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 mx-4 animate-fadeIn">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800">
+      <div className='bg-white rounded-xl shadow-xl w-full max-w-xl p-6 mx-4 animate-fadeIn'>
+        <div className='flex justify-between items-center mb-4'>
+          <h2 className='text-xl font-bold text-gray-800'>
             Add Your Signature
           </h2>
           <button
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            className='p-2 rounded-full hover:bg-gray-100 transition-colors'
             onClick={onClose}
             disabled={loading}
           >
-            <XIcon className="h-5 w-5 text-gray-500" />
+            <XIcon className='h-5 w-5 text-gray-500' />
           </button>
         </div>
 
         {/* Tab navigation */}
-        <div className="flex border-b border-gray-200 mb-4">
+        <div className='flex border-b border-gray-200 mb-4'>
           <button
             className={`flex-1 py-3 text-center font-medium ${
               activeTab === "draw"
@@ -140,8 +171,8 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
             onClick={() => setActiveTab("draw")}
             disabled={loading}
           >
-            <div className="flex items-center justify-center gap-2">
-              <PenIcon className="h-4 w-4" />
+            <div className='flex items-center justify-center gap-2'>
+              <PenIcon className='h-4 w-4' />
               Draw Signature
             </div>
           </button>
@@ -154,15 +185,15 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
             onClick={() => setActiveTab("upload")}
             disabled={loading}
           >
-            <div className="flex items-center justify-center gap-2">
-              <UploadIcon className="h-4 w-4" />
+            <div className='flex items-center justify-center gap-2'>
+              <UploadIcon className='h-4 w-4' />
               Upload Image
             </div>
           </button>
         </div>
 
         {/* Drawing Canvas */}
-        {activeTab === "draw" && (
+        {/* {activeTab === "draw" && (
           <div className="mb-4">
             <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 p-1 cursor-crosshair">
               <canvas
@@ -188,34 +219,64 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
               </button>
             </div>
           </div>
+        )} */}
+        {activeTab === "draw" && (
+          <div className='mb-4'>
+            <div className='border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 p-1 cursor-crosshair'>
+              <canvas
+                ref={canvasRef}
+                onMouseDown={startDrawing}
+                onMouseUp={finishDrawing}
+                onMouseMove={draw}
+                onMouseLeave={finishDrawing}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={finishDrawing}
+                className='w-full h-48 bg-white rounded-md'
+                style={{ pointerEvents: loading ? "none" : "auto" }}
+              />
+            </div>
+            <div className='flex justify-between mt-2'>
+              <p className='text-sm text-gray-500'>
+                Use your mouse or touch to sign above
+              </p>
+              <button
+                onClick={clearCanvas}
+                className='flex items-center text-sm text-red-500 hover:text-red-600'
+                disabled={loading}
+              >
+                <TrashIcon className='h-4 w-4 mr-1' /> Clear
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Upload Image */}
         {activeTab === "upload" && (
-          <div className="mb-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+          <div className='mb-4'>
+            <div className='border-2 border-dashed border-gray-300 rounded-lg p-4 text-center'>
               {imagePreview ? (
-                <div className="relative">
+                <div className='relative'>
                   <img
                     src={imagePreview}
-                    alt="Signature"
-                    className="max-h-48 mx-auto"
+                    alt='Signature'
+                    className='max-h-48 mx-auto'
                   />
                   <button
                     onClick={() => setImagePreview(null)}
-                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                    className='absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600'
                     disabled={loading}
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon className='h-4 w-4' />
                   </button>
                 </div>
               ) : (
-                <div className="py-6">
-                  <UploadIcon className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-2">
+                <div className='py-6'>
+                  <UploadIcon className='h-12 w-12 text-gray-400 mx-auto mb-3' />
+                  <p className='text-gray-500 mb-2'>
                     Drag and drop your signature image here
                   </p>
-                  <p className="text-gray-400 text-sm mb-4">
+                  <p className='text-gray-400 text-sm mb-4'>
                     Or select a file from your computer
                   </p>
                   <label
@@ -225,27 +286,27 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
                         : "cursor-pointer hover:bg-blue-700"
                     } transition-colors`}
                   >
-                    <UploadIcon className="h-4 w-4" />
+                    <UploadIcon className='h-4 w-4' />
                     Browse File
                     <input
-                      type="file"
-                      accept="image/*"
+                      type='file'
+                      accept='image/*'
                       onChange={handleImageUpload}
-                      className="hidden"
+                      className='hidden'
                       disabled={loading}
                     />
                   </label>
                 </div>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className='text-xs text-gray-500 mt-2'>
               Supported formats: JPG, PNG, GIF (max 5MB)
             </p>
           </div>
         )}
 
         {/* Action buttons */}
-        <div className="flex justify-end gap-3 mt-6">
+        <div className='flex justify-end gap-3 mt-6'>
           <button
             onClick={onClose}
             className={`px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg ${
@@ -266,7 +327,7 @@ const SignatureModal = ({ isOpen, onClose, onSave }) => {
           >
             {loading ? (
               <>
-                <Loader className="h-4 w-4 animate-spin" />
+                <Loader className='h-4 w-4 animate-spin' />
                 Saving...
               </>
             ) : (
