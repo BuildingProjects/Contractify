@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarIcon,
@@ -37,7 +37,7 @@ export default function CreateContractPage() {
   const [wordCount, setWordCount] = useState(0);
   const [email, setEmail] = useState(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
+  const dateInputRef = useRef(null);
   useEffect(() => {
     fetch(`${API_URL}/api/auth/get-token`, {
       method: "GET",
@@ -225,9 +225,9 @@ export default function CreateContractPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className='min-h-screen bg-gray-50'>
       <Navbar contractorName={contractorName} />
-      <main className="pt-16 sm:pt-20 px-3 sm:px-6 lg:px-8 max-w-4xl mx-auto pb-12">
+      <main className='pt-16 sm:pt-20 px-3 sm:px-6 lg:px-8 max-w-4xl mx-auto pb-12'>
         {/* Header */}
         <div className='flex items-center gap-4 mb-6'>
           <button
@@ -360,10 +360,10 @@ export default function CreateContractPage() {
                 Contractor Email*
               </label>
               <input
-                type="email"
+                type='email'
                 disabled
-                id="contractorEmail"
-                name="contractorEmail"
+                id='contractorEmail'
+                name='contractorEmail'
                 value={formData.contractorEmail}
                 onChange={handleChange}
                 placeholder={email}
@@ -447,8 +447,12 @@ export default function CreateContractPage() {
                   className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.startDate ? "border-red-500" : "border-gray-300"
                   }`}
+                  ref={dateInputRef} // Add ref to access the input element
                 />
-                <CalendarIcon className='absolute right-3 top-2.5 h-5 w-5 text-gray-400' />
+                <CalendarIcon
+                  className='absolute right-3 top-2.5 h-5 w-5 text-gray-400 cursor-pointer'
+                  onClick={() => dateInputRef.current.showPicker()} // Open native date picker on icon click
+                />
               </div>
               {errors.startDate && (
                 <p className='mt-1 text-sm text-red-500'>{errors.startDate}</p>
@@ -458,7 +462,7 @@ export default function CreateContractPage() {
             {/* End Date */}
             <div>
               <label
-                htmlFor='endDate'
+                htmlFor='startDate'
                 className='block text-sm font-medium text-gray-700 mb-1'
               >
                 End Date*
@@ -466,18 +470,22 @@ export default function CreateContractPage() {
               <div className='relative'>
                 <input
                   type='date'
-                  id='endDate'
-                  name='endDate'
-                  value={formData.endDate}
+                  id='startDate'
+                  name='startDate'
+                  value={formData.startDate}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.endDate ? "border-red-500" : "border-gray-300"
+                    errors.startDate ? "border-red-500" : "border-gray-300"
                   }`}
+                  ref={dateInputRef} // Add ref to access the input element
                 />
-                <CalendarIcon className='absolute right-3 top-2.5 h-5 w-5 text-gray-400' />
+                <CalendarIcon
+                  className='absolute right-3 top-2.5 h-5 w-5 text-gray-400 cursor-pointer'
+                  onClick={() => dateInputRef.current.showPicker()} // Open native date picker on icon click
+                />
               </div>
-              {errors.endDate && (
-                <p className='mt-1 text-sm text-red-500'>{errors.endDate}</p>
+              {errors.startDate && (
+                <p className='mt-1 text-sm text-red-500'>{errors.startDate}</p>
               )}
             </div>
           </div>
