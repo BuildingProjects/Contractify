@@ -32,7 +32,6 @@ export default function CreateContractPage() {
   const [wordCount, setWordCount] = useState(0);
   const [createdContractId, setCreatedContractId] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [contractCID, setContractCID] = useState(null);
 
   // Count words in description
   useEffect(() => {
@@ -154,11 +153,6 @@ export default function CreateContractPage() {
       if (response.ok) {
         console.log("Form submitted successfully");
         setCreatedContractId(responseData.contract._id);
-        // Store the CID from the response
-        if (responseData.cid) {
-          console.log("Contract PDF CID:", responseData.cid);
-          setContractCID(responseData.cid);
-        }
         alert("Contract created successfully!");
         router.push('/dashboard');
       } else {
@@ -174,23 +168,7 @@ export default function CreateContractPage() {
   const handleDownload = async () => {
     try {
       setIsDownloading(true);
-      if (contractCID) {
-        console.log("Downloading contract with CID:", contractCID);
-        const ipfsUrl = `https://ipfs.io/ipfs/${contractCID}`;
-        console.log("IPFS URL:", ipfsUrl);
-        
-        // Create a temporary link and trigger download
-        const link = document.createElement('a');
-        link.href = ipfsUrl;
-        link.target = '_blank';
-        link.download = `contract_${createdContractId}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        // Fallback to existing download method if no CID
-        await downloadContractPDF(createdContractId);
-      }
+      await downloadContractPDF(createdContractId);
     } catch (error) {
       console.error('Failed to download contract:', error);
       alert('Failed to download contract. Please try again.');

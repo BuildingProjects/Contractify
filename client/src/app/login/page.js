@@ -85,9 +85,6 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
-      console.log("Token received from server:", data.token);
-      // Cookies.set("authToken", data.token);
-      // console.log("Token stored in cookie:", Cookies.get("authToken"));
 
       if (!res.ok) {
         switch (res.status) {
@@ -132,27 +129,39 @@ export default function LoginPage() {
       // Clear any existing errors on successful login
       setErrors({});
       setApiError("");
+
       if (data.token) {
         try {
-          // Store token securely
-          Cookies.set("authToken", data.token, {
-            expires: 7, // 7-day expiry
-            secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-            sameSite: "Strict", // Prevent CSRF attacks
-          });
-          console.log("Token stored in cookie:", Cookies.get("authToken"));
-          // Decode token and store user email
+          // Store token consistently
+          localStorage.setItem('token', data.token);
+          
+          // Store user type
+          localStorage.setItem('userType', formData.userType);
+          
+          // Store email
+          localStorage.setItem('userEmail', formData.email);
+          
+          // Decode token to verify it's valid
           const decoded = jwtDecode(data.token);
-          Cookies.set("userEmail", decoded.email, { expires: 7 });
+          if (!decoded || !decoded.email) {
+            throw new Error('Invalid token received');
+          }
+          
+          // Redirect to dashboard
+          router.push('/dashboard');
         } catch (error) {
-          console.error("Error storing or decoding token:", error);
+          console.error('Error processing token:', error);
+          setApiError('Error processing login response. Please try again.');
+          // Clean up any partially stored data
+          localStorage.removeItem('token');
+          localStorage.removeItem('userType');
+          localStorage.removeItem('userEmail');
         }
       } else {
-        console.error("No token received from server");
+        setApiError('No authentication token received. Please try again.');
       }
-      localStorage.setItem("userEmail", formData.email);
-      router.push("/dashboard");
     } catch (err) {
+      console.error("Login error:", err);
       setApiError("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);

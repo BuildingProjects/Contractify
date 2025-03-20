@@ -4,7 +4,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { API_URL } from '../services/api';
-import { updateContractStatusToExpired } from "../services/contractService";
+// import { updateContractStatusToExpired } from "../services/contractService";
 
 import {
   PlusIcon,
@@ -27,6 +27,8 @@ import FeaturesSlider from "../components/dashboard/FeaturesSlider";
 import Navbar from "../components/dashboard/Navbar";
 import { useRouter } from "next/navigation";
 import { downloadContractPDF } from '../services/contractService';
+import { ethers } from 'ethers';
+import { contractABI } from '../utils/contractABI';
 
 export default function DashboardPage() {
   const [email, setEmail] = useState(null);
@@ -36,71 +38,111 @@ export default function DashboardPage() {
   const [statusCounts, setStatusCounts] = useState({});
   const router = useRouter();
 
-  // In your first useEffect where you decode the token
+  // Update the token check in useEffect
   useEffect(() => {
-    const token = Cookies.get("authToken");
-    console.log("Initial token check:", token);
+    const token = localStorage.getItem('token');
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        console.log("Decoded token:", decoded); // Log the full decoded token
-        console.log("Token expiration:", new Date(decoded.exp * 1000)); // Check expiration
-        console.log("");
+        if (decoded.exp * 1000 < Date.now()) {
+          // Token has expired
+          localStorage.removeItem('token');
+          localStorage.removeItem('userType');
+          localStorage.removeItem('userEmail');
+          router.push('/login');
+          return;
+        }
         setEmail(decoded.email);
       } catch (error) {
-        console.error("Error decoding token:", error);
+        console.error('Token validation error:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('userType');
+        localStorage.removeItem('userEmail');
+        router.push('/login');
       }
     } else {
-      console.error("No token found");
+      router.push('/login');
     }
   }, []);
 
-  // Separate useEffect to wait for email to be set
+  // Update the contracts fetch to use the token properly
   useEffect(() => {
     if (!email) {
-      console.log("Email is required");
       return;
     }
 
-    console.log(
-      "Making API request to:",
-      `${API_URL}/contracts/getContracts/${email}`
-    );
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    console.log("Making API request to:", `${API_URL}/contracts/getContracts/${email}`);
     const uri = `${API_URL}/contracts/getContracts/${email}`;
     fetch(uri, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
-      credentials: "include", // This is critical - it includes cookies in the request
+      credentials: "include",
     })
-      .then((response) => {
+    .then((response) => {
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token is invalid or expired
+          localStorage.removeItem('token');
+          localStorage.removeItem('userType');
+          localStorage.removeItem('userEmail');
+          router.push('/login');
+          throw new Error('Authentication failed');
+        }
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("API Response:", data);
+      setContracts(data.contracts);
+      setFilteredContracts(data.contracts);
+      calculateStatusCounts(data.contracts);
+    })
+    .catch((error) => {
+      console.error("Error fetching contracts:", error);
+      if (error.message !== 'Authentication failed') {
+        // Show error message to user
+        alert('Failed to fetch contracts. Please try again later.');
+      }
+    });
+  }, [email]);
+
+  // Update the useEffect that handles expired contracts
+  useEffect(() => {
+    const updateExpiredContracts = async () => {
+      try {
+        console.log("Updating expired contracts...");
+        const response = await fetch(`${API_URL}/contracts/updateContractStatusToExpired`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("API Response:", data);
-        setContracts(data.contracts);
-        setFilteredContracts(data.contracts);
-        calculateStatusCounts(data.contracts);
-      })
-      .catch((error) => {
-        console.error("Error fetching contracts:", error);
-      });
-    console.log(contracts);
-  }, [email]);
 
-  useEffect(() => {
-    const updateExpiredContracts = async () => {
-        try {
-            console.log("Calling API to update expired contracts...");
-            const data = await updateContractStatusToExpired();
-            console.log("API Response:", data);
-        } catch (error) {
-            console.error("Error updating expired contracts:", error);
+        const data = await response.json();
+        console.log("Expired contracts update response:", data);
+        
+        // Refresh the contracts list after updating expired status
+        if (data.success) {
+          fetchContracts();
         }
+      } catch (error) {
+        console.error("Error updating expired contracts:", error);
+      }
     };
 
     updateExpiredContracts();
@@ -277,6 +319,203 @@ export default function DashboardPage() {
       text: "text-red-800",
       indicator: "bg-red-500",
     },
+  };
+
+  // Initialize blockchain provider
+  const initializeProvider = async () => {
+    const rpcUrl = "https://sepolia.infura.io/v3/54c54cc052f04109a172d8e20ff723b2";
+    
+    // Create provider with Sepolia network configuration
+    const provider = new ethers.JsonRpcProvider(rpcUrl, {
+      chainId: 11155111,
+      name: 'sepolia',
+      ensAddress: null,
+      timeout: 30000
+    });
+
+    try {
+      // Test provider connection
+      await provider.getNetwork();
+      return provider;
+    } catch (error) {
+      throw new Error(`Failed to connect to Sepolia network: ${error.message}`);
+    }
+  };
+
+  // Initialize contract instance
+  const initializeContract = async (provider, withSigner = false) => {
+    const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+    if (!contractAddress) {
+      throw new Error("Contract address not configured in environment variables");
+    }
+
+    if (withSigner) {
+      const privateKey = process.env.NEXT_PUBLIC_PRIVATE_KEY;
+      if (!privateKey) {
+        throw new Error("Private key not configured in environment variables");
+      }
+      const wallet = new ethers.Wallet(privateKey, provider);
+      return new ethers.Contract(contractAddress, contractABI, wallet);
+    }
+
+    return new ethers.Contract(contractAddress, contractABI, provider);
+  };
+
+  const storeCIDOnChain = async (contractId, cid) => {
+    try {
+      console.log("Initializing blockchain connection...");
+      const provider = await initializeProvider();
+      
+      console.log("Setting up contract with signer...");
+      const contract = await initializeContract(provider, true);
+      
+      console.log(`Storing CID ${cid} for contract ${contractId}...`);
+      const tx = await contract.addCid(contractId, cid, {
+        gasLimit: 500000 // Set appropriate gas limit
+      });
+      
+      console.log("Transaction sent:", tx.hash);
+      console.log("Waiting for confirmation...");
+      
+      const receipt = await tx.wait();
+      console.log("Transaction confirmed in block:", receipt.blockNumber);
+      
+      return {
+        success: true,
+        hash: tx.hash,
+        blockNumber: receipt.blockNumber
+      };
+    } catch (error) {
+      console.error("Blockchain Error:", error);
+      throw new Error(`Blockchain Error: ${error.message}`);
+    }
+  };
+
+  const readCIDFromChain = async (contractId) => {
+    try {
+      console.log("Initializing blockchain connection...");
+      const provider = await initializeProvider();
+      
+      console.log("Setting up contract...");
+      const contract = await initializeContract(provider, false);
+      
+      console.log(`Reading CID for contract ${contractId}...`);
+      const cid = await contract.getLatestCid(contractId);
+      
+      if (!cid) {
+        throw new Error("No CID found for this contract");
+      }
+      
+      console.log("Retrieved CID:", cid);
+      return cid;
+    } catch (error) {
+      console.error("Blockchain Error:", error);
+      throw new Error(`Blockchain Error: ${error.message}`);
+    }
+  };
+
+  const handleStoreCID = async (contractId) => {
+    try {
+      if (!selectedContract || !selectedContract.cids || selectedContract.cids.length === 0) {
+        throw new Error("No CID available for this contract");
+      }
+
+      const latestCid = selectedContract.cids[selectedContract.cids.length - 1];
+      
+      // First verify CID exists on IPFS
+      console.log("Verifying CID on IPFS...");
+      const ipfsLink = `https://ipfs.io/ipfs/${latestCid}`;
+      try {
+        const response = await fetch(ipfsLink, { method: 'HEAD' });
+        if (!response.ok) {
+          throw new Error("CID not found on IPFS");
+        }
+        console.log("CID verified on IPFS");
+      } catch (error) {
+        throw new Error("Unable to verify CID on IPFS. Please ensure the document is properly uploaded.");
+      }
+
+      // Store CID on blockchain
+      console.log("Storing CID on blockchain...");
+      const result = await storeCIDOnChain(contractId, latestCid);
+      
+      // Show success message with transaction details
+      alert(
+        `Successfully stored CID on blockchain\n\n` +
+        `Transaction Hash: ${result.hash}\n` +
+        `Block Number: ${result.blockNumber}\n\n` +
+        `IPFS Link: ${ipfsLink}`
+      );
+
+      // Verify storage by reading back
+      console.log("Verifying stored CID...");
+      const storedCID = await readCIDFromChain(contractId);
+      if (storedCID !== latestCid) {
+        console.warn("Stored CID verification mismatch");
+      } else {
+        console.log("CID storage verified successfully");
+      }
+      
+    } catch (error) {
+      console.error("Error in handleStoreCID:", error);
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  const handleViewCID = async (contractId) => {
+    try {
+      console.log("Fetching CID from blockchain...");
+      const cid = await readCIDFromChain(contractId);
+      
+      // List of IPFS gateways to try
+      const ipfsGateways = [
+        'https://ipfs.io/ipfs',
+        'https://gateway.pinata.cloud/ipfs',
+        'https://cloudflare-ipfs.com/ipfs',
+        'https://dweb.link/ipfs'
+      ];
+
+      // Try each gateway until we find one that works
+      console.log("Checking IPFS gateways...");
+      for (const gateway of ipfsGateways) {
+        const url = `${gateway}/${cid}`;
+        try {
+          const response = await fetch(url, { method: 'HEAD' });
+          if (response.ok) {
+            const message = 
+              `Contract CID: ${cid}\n\n` +
+              `IPFS Link: ${url}\n\n` +
+              `Click OK to open the document`;
+              
+            if (confirm(message)) {
+              window.open(url, '_blank');
+            }
+            return;
+          }
+        } catch (error) {
+          console.log(`Gateway ${gateway} failed:`, error);
+          continue;
+        }
+      }
+
+      throw new Error("Document not available on any IPFS gateway");
+
+    } catch (error) {
+      console.error("Error in handleViewCID:", error);
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  const handleDownloadPDF = async (contractId) => {
+    try {
+      const result = await downloadContractPDF(contractId);
+      if (!result.success) {
+        alert(result.error || 'Failed to download PDF');
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download PDF. Please try again.');
+    }
   };
 
   return (
@@ -685,18 +924,22 @@ export default function DashboardPage() {
                     Edit Contract
                   </button>
                   <button 
-                    onClick={async () => {
-                      try {
-                        const cid = await downloadContractPDF(selectedContract._id);
-                        console.log('Downloaded contract PDF with CID:', cid);
-                        // You can also display this in the UI if needed
-                      } catch (error) {
-                        console.error('Error downloading contract:', error);
-                      }
-                    }}
+                    onClick={() => handleDownloadPDF(selectedContract._id)}
                     className="w-full sm:flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-sm"
                   >
                     Download PDF
+                  </button>
+                  <button 
+                    onClick={() => handleStoreCID(selectedContract._id)}
+                    className="w-full sm:flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                  >
+                    Store on Blockchain
+                  </button>
+                  <button 
+                    onClick={() => handleViewCID(selectedContract._id)}
+                    className="w-full sm:flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+                  >
+                    View CID
                   </button>
                 </div>
 

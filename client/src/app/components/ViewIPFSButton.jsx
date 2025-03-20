@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, IconButton, Tooltip } from '@mui/material';
 import { CloudQueue as IPFSIcon } from '@mui/icons-material';
-import { viewContractOnIPFS, getIPFSUrl } from '../services/contractService.js';
+import { viewContractOnIPFS, getIPFSUrl } from '../services/contractService';
 
 export const ViewIPFSButton = ({ contractId, cid, variant = 'icon' }) => {
   const [isLoading, setIsLoading] = useState(false);

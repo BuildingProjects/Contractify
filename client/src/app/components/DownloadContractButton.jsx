@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { downloadContractPDF } from '../services/contractService.js';
+import { downloadContractPDF } from '../services/contractService';
 import { Button } from '@mui/material';
 import { Download as DownloadIcon } from '@mui/icons-material';
 
