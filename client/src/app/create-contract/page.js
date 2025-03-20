@@ -470,9 +470,9 @@ export default function CreateContractPage() {
               <div className='relative'>
                 <input
                   type='date'
-                  id='startDate'
-                  name='startDate'
-                  value={formData.startDate}
+                  id='endDate'
+                  name='endDate'
+                  value={formData.endDate}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.startDate ? "border-red-500" : "border-gray-300"
