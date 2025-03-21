@@ -37,7 +37,7 @@ export default function CreateContractPage() {
   const [wordCount, setWordCount] = useState(0);
   const [email, setEmail] = useState(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const dateInputRef = useRef(null);
+
   useEffect(() => {
     fetch(`${API_URL}/api/auth/get-token`, {
       method: "GET",
@@ -447,11 +447,6 @@ export default function CreateContractPage() {
                   className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.startDate ? "border-red-500" : "border-gray-300"
                   }`}
-                  ref={dateInputRef} // Add ref to access the input element
-                />
-                <CalendarIcon
-                  className='absolute right-3 top-2.5 h-5 w-5 text-gray-400 cursor-pointer'
-                  onClick={() => dateInputRef.current.showPicker()} // Open native date picker on icon click
                 />
               </div>
               {errors.startDate && (
@@ -477,11 +472,6 @@ export default function CreateContractPage() {
                   className={`w-full px-3 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.startDate ? "border-red-500" : "border-gray-300"
                   }`}
-                  ref={dateInputRef} // Add ref to access the input element
-                />
-                <CalendarIcon
-                  className='absolute right-3 top-2.5 h-5 w-5 text-gray-400 cursor-pointer'
-                  onClick={() => dateInputRef.current.showPicker()} // Open native date picker on icon click
                 />
               </div>
               {errors.startDate && (
