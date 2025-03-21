@@ -8,6 +8,7 @@ const path = require("path");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const puppeteer = require("puppeteer");
 const axios = require("axios");
+const {storeCIDOnChain} = require("../services/contractService");
 // const ImageKit = require("imagekit");
 
 // const fs = require("fs");
@@ -26,6 +27,7 @@ const transporter = nodemailer.createTransport({
 });
 const ImageKit = require("imagekit");
 const Notification = require("../models/Notification");
+// const { storeCIDOnChain } = require("../services/contractService");
 const imagekit = new ImageKit({
   publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
   privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
@@ -741,6 +743,7 @@ const generateContractPDF = async (req, res) => {
     const result = await generateContract(contract);
 
     if (result.success) {
+    storeCIDOnChain(contract._id, result.pdfPathipfs);
       contract.imagekitpdfurl = result.pdfPathimagekit;
       contract.ipfspdfurl = result.pdfPathipfs;
       await contract.save();
@@ -748,7 +751,7 @@ const generateContractPDF = async (req, res) => {
         message: "Contract PDF generated successfully",
         pdfPath: result.pdfPath,
       });
-    } else {
+    } else { 
       res.status(500).json({ message: result.message });
     }
   } catch (error) {
