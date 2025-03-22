@@ -45,7 +45,7 @@ exports.contractorSignup = async (req, res) => {
         // secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         secure: true, // Use secure cookies in production
         sameSite: "none", // Prevent CSRF attacks
-        domain: "contractify-backend.onrender.com",
+        // domain: "contractify-backend.onrender.com",
       })
       .status(201)
       .json({
