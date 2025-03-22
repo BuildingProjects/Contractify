@@ -13,6 +13,7 @@ import SignatureModal from "../components/SignatureModal";
 import { FileSignature } from "lucide-react";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-toastify";
 
 export default function EditContractPage() {
   return (
@@ -138,8 +139,10 @@ const EditContract = () => {
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching contract data:", error);
-        alert("Failed to load contract data. Redirecting to dashboard.");
-        router.push("/dashboard");
+        toast.error("Failed to load contract data. Redirecting to dashboard...", {
+          autoClose: 3000, // Close after 3 seconds
+          onClose: () => router.push("/dashboard"), // Redirect after toast disappears
+        });
       }
     };
     fetchContractData();
@@ -286,18 +289,20 @@ const EditContract = () => {
       console.log("Response data:", responseData);
 
       if (response.ok) {
-        alert("Contract updated successfully!");
-        router.push("/dashboard");
+        toast.success("Contract updated successfully!", {
+          autoClose: 3000, // Close after 3 seconds
+          onClose: () => router.push("/dashboard"), // Redirect after toast disappears
+        });
       } else {
-        alert(
-          `Failed to update contract: ${
-            responseData.message || "Unknown error"
-          }`
-        );
+        toast.error(`Failed to update contract: ${responseData.message || "Unknown error"}`, {
+          autoClose: 4000, // Close after 4 seconds
+        });
       }
     } catch (error) {
       console.error("Error updating contract:", error);
-      alert("An error occurred while updating the contract. Please try again.");
+      toast.error("An error occurred while updating the contract. Please try again.", {
+        autoClose: 4000, // Close after 4 seconds
+      });
     } finally {
       setLoading(false); // Stop loader after response
     }

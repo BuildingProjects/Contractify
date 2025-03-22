@@ -12,6 +12,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "axios": "^1.8.1",
+    "class-variance-authority": "^0.7.1",
     "framer-motion": "^11.18.1",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
@@ -21,7 +22,8 @@
     "react-countup": "^6.5.3",
     "react-dom": "^19.0.0",
     "react-icons": "^5.4.0",
-    "react-intersection-observer": "^9.15.0"
+    "react-intersection-observer": "^9.15.0",
+    "react-toastify": "^11.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

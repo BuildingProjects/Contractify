@@ -13,6 +13,7 @@ import SignatureModal from "../components/SignatureModal"; // Add this import
 import { FileSignature } from "lucide-react"; // Add this to your imports
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-toastify";
 export default function CreateContractPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -205,16 +206,26 @@ export default function CreateContractPage() {
       console.log("Response data:", responseData);
 
       if (response.ok) {
-        alert("Contract created successfully!");
-        router.push("/dashboard");
+        toast.success("Contract created successfully!", {
+          autoClose: 3000, // Close after 3 seconds
+          onClose: () => router.push("/dashboard"), // Redirect after toast disappears
+        });
       } else {
-        alert(
-          `Failed to submit form: ${responseData.message || "Unknown error"}`
+        toast.error(
+          `Failed to submit form: ${responseData.message || "Unknown error"}`,
+          {
+            autoClose: 4000, // Adjust duration as needed
+          }
         );
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("An error occurred while submitting the form. Please try again.");
+      toast.error(
+        "An error occurred while submitting the form. Please try again.",
+        {
+          autoClose: 4000, // Close after 4 seconds
+        }
+      );
     } finally {
       setLoading(false); // Stop loader after response
     }

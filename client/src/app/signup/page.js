@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-
+import { toast } from "react-toastify";
+// import { toast } from "@/components/ui/use-toast";
 export default function SignupPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -87,7 +88,13 @@ const SignUp = () => {
         }
 
         // Notify the user that an email has been sent
-        alert("Verification code sent to your email. Please enter the OTP.");
+        toast({
+          title: "OTP Sent",
+          description:
+            "Verification code sent to your email. Please enter the OTP.",
+          variant: "default",
+          duration: 4000, // Auto-dismiss after 4 seconds
+        });
         // Move to OTP stage
         setStage("otp");
         startResendTimer();
@@ -120,7 +127,12 @@ const SignUp = () => {
         // Fix: Check status from `otpRes`, not `otpData`
         if (otpRes.status === 200) {
           console.log(otpData.message);
-          alert("Email verified successfully!");
+          toast({
+            title: "Success",
+            description: "Email verified successfully!",
+            variant: "default",
+            duration: 3000, // Auto-dismiss after 3 seconds
+          });
           router.push("/dashboard");
         } else {
           setError(otpData.message || "OTP verification failed");

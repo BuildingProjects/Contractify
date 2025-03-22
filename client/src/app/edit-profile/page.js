@@ -115,7 +115,9 @@ export default function EditProfilePage() {
       }
 
       // Show success message before redirecting
-      alert("Profile updated successfully!");
+      toast.success("Profile updated successfully!", {
+        autoClose: 3000, // Close after 3 seconds
+      });
 
       router.push("/profile-page"); // Redirect after successful update
     } catch (error) {

@@ -184,8 +184,6 @@ export default function DashboardPage() {
     localStorage.setItem("userName", contractorName);
 
     router.push("/create-contract");
-
-    // alert("Create Contract Functionality");
   };
 
   const seeContractsReadyTobeSigned = () => {
@@ -548,59 +546,65 @@ export default function DashboardPage() {
 
         {/* Display Contracts with responsive grid */}
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-4'>
-          {filteredContracts.map((contract) => {
-            const statusColor = statusColors[contract.status] || {
-              bg: "bg-gray-100",
-              text: "text-gray-800",
-              indicator: "bg-gray-500",
-            }; // Fallback if status is missing
+          {filteredContracts
+            .toSorted((a, b) => {
+              const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              return timeA - timeB; // Oldest first, newest last
+            })
+            .map((contract) => {
+              const statusColor = statusColors[contract.status] || {
+                bg: "bg-gray-100",
+                text: "text-gray-800",
+                indicator: "bg-gray-500",
+              }; // Fallback if status is missing
 
-            return (
-              <div
-                key={contract._id}
-                className='bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform hover:scale-102 transition-all hover:shadow-xl'
-                onClick={() => openContractModal(contract)}
-              >
-                <div className='flex items-center justify-between p-3 sm:p-4 border-b'>
-                  <h3 className='font-semibold text-gray-800 truncate max-w-[70%]'>
-                    {contract.contractCategory}
-                  </h3>
-                  <span
-                    className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs flex items-center gap-1 whitespace-nowrap ${statusColor.bg} ${statusColor.text}`}
-                  >
+              return (
+                <div
+                  key={contract._id}
+                  className='bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform hover:scale-102 transition-all hover:shadow-xl'
+                  onClick={() => openContractModal(contract)}
+                >
+                  <div className='flex items-center justify-between p-3 sm:p-4 border-b'>
+                    <h3 className='font-semibold text-gray-800 truncate max-w-[70%]'>
+                      {contract.contractCategory}
+                    </h3>
                     <span
-                      className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${statusColor.indicator}`}
-                    ></span>
-                    <span className='xs:inline'>
-                      {contract.status || "Unknown"}
+                      className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs flex items-center gap-1 whitespace-nowrap ${statusColor.bg} ${statusColor.text}`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${statusColor.indicator}`}
+                      ></span>
+                      <span className='xs:inline'>
+                        {contract.status || "Unknown"}
+                      </span>
                     </span>
-                  </span>
-                </div>
-                <div className='p-3 sm:p-4'>
-                  <div className='flex justify-between items-center mb-2'>
-                    <p className='text-xs sm:text-sm text-gray-500 truncate max-w-[70%]'>
-                      {contract.contractee}
-                    </p>
-                    <p className='text-xs sm:text-sm font-semibold text-gray-800'>
-                      {contract.contractValue === "NA"
-                        ? " "
-                        : `₹${contract.contractValue}`}
+                  </div>
+                  <div className='p-3 sm:p-4'>
+                    <div className='flex justify-between items-center mb-2'>
+                      <p className='text-xs sm:text-sm text-gray-500 truncate max-w-[70%]'>
+                        {contract.contractee}
+                      </p>
+                      <p className='text-xs sm:text-sm font-semibold text-gray-800'>
+                        {contract.contractValue === "NA"
+                          ? " "
+                          : `₹${contract.contractValue}`}
+                      </p>
+                    </div>
+                    <p className='text-xs text-gray-500 truncate'>
+                      {contract.contractDescription}
                     </p>
                   </div>
-                  <p className='text-xs text-gray-500 truncate'>
-                    {contract.contractDescription}
-                  </p>
+                  <div className='bg-gray-50 px-3 sm:px-4 py-1.5 sm:py-2 text-xs text-gray-500 flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1'>
+                    <span className='text-blue-600'>View details</span>
+                    <span className='text-xs whitespace-nowrap'>
+                      {new Date(contract.startDate).toLocaleDateString("en-GB")}{" "}
+                      - {new Date(contract.endDate).toLocaleDateString("en-GB")}
+                    </span>
+                  </div>
                 </div>
-                <div className='bg-gray-50 px-3 sm:px-4 py-1.5 sm:py-2 text-xs text-gray-500 flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1'>
-                  <span className='text-blue-600'>View details</span>
-                  <span className='text-xs whitespace-nowrap'>
-                    {new Date(contract.startDate).toLocaleDateString("en-GB")} -{" "}
-                    {new Date(contract.endDate).toLocaleDateString("en-GB")}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
 
         {/* Contract Detail Modal - Responsive improvements */}

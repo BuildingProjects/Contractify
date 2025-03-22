@@ -369,8 +369,14 @@ const getContractsByEmail = async (req, res) => {
     console.log("Query being executed:", query); // Debug query before execution
 
     const contracts = await Contract.find(query);
+    contracts.sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA; // Newest first
+    });
 
     console.log("Contracts found:", contracts.length);
+    console.log("Contracts found:", contracts);
 
     res.status(200).json({ contracts });
   } catch (error) {
