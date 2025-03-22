@@ -107,12 +107,12 @@ const SignUp = () => {
 
         const otpRes = await fetch(apiUrl, {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: formData.email,
             code: formData.otp,
           }),
-          credentials: "include",
         });
 
         const otpData = await otpRes.json();
