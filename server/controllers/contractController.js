@@ -499,11 +499,11 @@ async function generateContract(contractDetails) {
 
     // Generate PDF using direct contract details
     const pdfPathipfs = await generatePDFforipfs(contractDetails, contractText);
-    const pdfPathimagekit = await generatePDFforimagekit(contractDetails, contractText);
-    console.log("PDF Path (ImageKit):", pdfPathimagekit);
+    // const pdfPathimagekit = await generatePDFforimagekit(contractDetails, contractText);
+    // console.log("PDF Path (ImageKit):", pdfPathimagekit);
     console.log("PDF Path (IPFS):", pdfPathipfs);
 
-    return { success: true, pdfPathimagekit: pdfPathimagekit, pdfPathipfs: pdfPathipfs };
+    return { success: true, pdfPathipfs: pdfPathipfs };
   } catch (error) {
     console.error("Error generating contract:", error);
     return { success: false, message: "Failed to generate contract." };
@@ -774,7 +774,7 @@ const generateContractPDF = async (req, res) => {
     if (result.success) {
     const blockchainResult =await storeCIDOnChain(contract._id, result.pdfPathipfs);
     console.log("Blockchain Result:", blockchainResult);
-      contract.imagekitpdfurl = result.pdfPathimagekit;
+    //   contract.imagekitpdfurl = result.pdfPathimagekit;
       contract.ipfspdfurl = result.pdfPathipfs;
       contract.transactionHash = blockchainResult.transactionHash;
       await contract.save();
