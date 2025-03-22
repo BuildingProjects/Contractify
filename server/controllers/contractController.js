@@ -463,6 +463,127 @@ async function generateContract(contractDetails) {
   }
 }
 
+// function generatePDF(contractDetails, contractText) {
+//   return new Promise(async (resolve, reject) => {
+//     try {
+//       const doc = new PDFDocument({ margin: 50 });
+//       let buffers = [];
+
+//       doc.on("data", (chunk) => buffers.push(chunk));
+//       doc.on("end", async () => {
+//         const pdfBuffer = Buffer.concat(buffers);
+
+//         try {
+//           const uploadResponse = await imagekit.upload({
+//             file: pdfBuffer,
+//             fileName: `${contractDetails.contractorEmail}_contract.pdf`,
+//             folder: "/contracts/",
+//           });
+
+//           resolve(uploadResponse.url);
+//         } catch (uploadError) {
+//           console.error("Error uploading PDF:", uploadError);
+//           reject(uploadError);
+//         }
+//       });
+
+//       // **Title**
+//       doc
+//         .fontSize(18)
+//         .font("Helvetica-Bold")
+//         .text("Contract under Contractify", { align: "center" })
+//         .moveDown(2);
+
+//       // **Contract Details - Using contractDetails directly**
+//       const addSection = (title, content) => {
+//         doc.fontSize(14).font("Helvetica-Bold").text(title);
+//         doc
+//           .fontSize(12)
+//           .font("Helvetica")
+//           .text(content || "N/A")
+//           .moveDown();
+//       };
+
+//       const formatAdditionalTerms = (dynamicFields) => {
+//         if (!dynamicFields || Object.keys(dynamicFields).length === 0) {
+//           return "None";
+//         }
+//         return Object.entries(dynamicFields)
+//           .map(([key, value]) => `${key}: ${value}`)
+//           .join("\n");
+//       };
+
+//       addSection("Contract Category:", contractDetails.contractCategory);
+//       addSection("Contractor Name:", contractDetails.contractor);
+//       addSection("Contractee Name:", contractDetails.contractee);
+//       addSection("Contractor Email:", contractDetails.contractorEmail);
+//       addSection("Contractee Email:", contractDetails.contracteeEmail);
+//       addSection("Start Date:", contractDetails.startDate);
+//       addSection("End Date:", contractDetails.endDate);
+//       addSection("Contract Value:", contractDetails.contractValue);
+//       addSection(
+//         "Contract Creation Date:",
+//         contractDetails.contractCreationDate
+//       );
+//       addSection("Contract Description:", contractDetails.contractDescription);
+//       addSection(
+//         "Additional Terms:",
+//         formatAdditionalTerms(contractDetails.dynamicFields)
+//       );
+
+//       doc.moveDown(2);
+
+//       // **Full Contract Text**
+//       doc
+//         .fontSize(14)
+//         .font("Helvetica-Bold")
+//         .text("Contract Terms & Conditions:");
+//       doc.fontSize(12).font("Helvetica").text(contractText).moveDown(3);
+
+//       // **Signature Section**
+//       let yPosition = doc.y + 50;
+
+//       if (contractDetails.contractorSignature?.digital) {
+//         try {
+//           const response = await axios.get(
+//             contractDetails.contractorSignature.digital,
+//             {
+//               responseType: "arraybuffer",
+//             }
+//           );
+//           const signatureBuffer = Buffer.from(response.data, "binary");
+
+//           doc.image(signatureBuffer, 100, yPosition, { width: 150 });
+//           doc.fontSize(12).text("Contractor Signature", 100, yPosition + 50);
+//         } catch (err) {
+//           console.error("Error fetching contractor signature:", err);
+//         }
+//       }
+
+//       if (contractDetails.contracteeSignature?.digital) {
+//         try {
+//           const response = await axios.get(
+//             contractDetails.contracteeSignature.digital,
+//             {
+//               responseType: "arraybuffer",
+//             }
+//           );
+//           const signatureBuffer = Buffer.from(response.data, "binary");
+
+//           doc.image(signatureBuffer, 350, yPosition, { width: 150 });
+//           doc.fontSize(12).text("Contractee Signature", 350, yPosition + 50);
+//         } catch (err) {
+//           console.error("Error fetching contractee signature:", err);
+//         }
+//       }
+
+//       doc.end();
+//     } catch (error) {
+//       reject(error);
+//     }
+//   });
+// }
+
 function generatePDF(contractDetails, contractText) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -540,42 +661,45 @@ function generatePDF(contractDetails, contractText) {
         .text("Contract Terms & Conditions:");
       doc.fontSize(12).font("Helvetica").text(contractText).moveDown(3);
 
-      // **Signature Section**
+      // **Signature Section - Improved to avoid repetition**
+      const addSignature = async (
+        signatureUrl,
+        label,
+        xPosition,
+        yPosition
+      ) => {
+        if (signatureUrl) {
+          try {
+            const response = await axios.get(signatureUrl, {
+              responseType: "arraybuffer",
+            });
+            const signatureBuffer = Buffer.from(response.data, "binary");
+
+            doc.image(signatureBuffer, xPosition, yPosition, { width: 150 });
+            doc.fontSize(12).text(label, xPosition, yPosition + 50);
+          } catch (err) {
+            console.error(`Error fetching ${label}:`, err);
+          }
+        }
+      };
+
       let yPosition = doc.y + 50;
 
-      if (contractDetails.contractorSignature?.digital) {
-        try {
-          const response = await axios.get(
-            contractDetails.contractorSignature.digital,
-            {
-              responseType: "arraybuffer",
-            }
-          );
-          const signatureBuffer = Buffer.from(response.data, "binary");
-
-          doc.image(signatureBuffer, 100, yPosition, { width: 150 });
-          doc.fontSize(12).text("Contractor Signature", 100, yPosition + 50);
-        } catch (err) {
-          console.error("Error fetching contractor signature:", err);
-        }
-      }
-
-      if (contractDetails.contracteeSignature?.digital) {
-        try {
-          const response = await axios.get(
-            contractDetails.contracteeSignature.digital,
-            {
-              responseType: "arraybuffer",
-            }
-          );
-          const signatureBuffer = Buffer.from(response.data, "binary");
-
-          doc.image(signatureBuffer, 350, yPosition, { width: 150 });
-          doc.fontSize(12).text("Contractee Signature", 350, yPosition + 50);
-        } catch (err) {
-          console.error("Error fetching contractee signature:", err);
-        }
-      }
+      // Add signatures using the helper function
+      await Promise.all([
+        addSignature(
+          contractDetails.contractorSignature?.digital,
+          "Contractor Signature",
+          100,
+          yPosition
+        ),
+        addSignature(
+          contractDetails.contracteeSignature?.digital,
+          "Contractee Signature",
+          350,
+          yPosition
+        ),
+      ]);
 
       doc.end();
     } catch (error) {
