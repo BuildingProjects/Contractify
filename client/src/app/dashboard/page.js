@@ -35,6 +35,10 @@ export default function DashboardPage() {
   const [statusCounts, setStatusCounts] = useState({});
   const [isContractor, setIsContractor] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const token = Cookies.get("authToken");
+  const userType =
+    typeof window !== "undefined" ? localStorage.getItem("userType") : null;
   const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // In your first useEffect where you decode the token
@@ -96,13 +100,13 @@ export default function DashboardPage() {
         setContracts(data.contracts);
         setFilteredContracts(data.contracts);
         calculateStatusCounts(data.contracts);
-        if (data.contracts.length > 0) {
-          setContractorName(
-            isContractor
-              ? data.contracts[0].contractor
-              : data.contracts[0].contractee || "N/A"
-          );
-        }
+        // if (data.contracts.length > 0) {
+        //   setContractorName(
+        //     isContractor
+        //       ? data.contracts[0].contractor
+        //       : data.contracts[0].contractee || "N/A"
+        //   );
+        // }
       })
       .catch((error) => {
         console.log("Error fetching contracts:", error);
@@ -144,6 +148,43 @@ export default function DashboardPage() {
       setIsContractor(true);
     }
   }, []);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!token || !userType) return;
+
+      try {
+        const endpoint =
+          userType === "contractor"
+            ? "/profile/getContractorProfile"
+            : "/profile/getContracteeProfile";
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api${endpoint}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch user profile");
+        }
+
+        const data = await res.json();
+        setUser(data.user);
+        setContractorName(data.user.name);
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [token, userType]);
 
   const calculateStatusCounts = (contracts) => {
     const counts = contracts.reduce((acc, contract) => {
