@@ -37,6 +37,7 @@ const ContractSchema = new mongoose.Schema({
   dynamicFields: { type: Object, default: {} }, // Stores variable fields
   ipfspdfurl: { type: String, default: "" },
   imagekitpdfurl: { type: String, default: "" },
+  transactionHash: { type: String, default: "" },
 });
 
 module.exports = mongoose.model("Contract", ContractSchema);

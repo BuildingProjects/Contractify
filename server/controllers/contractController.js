@@ -528,6 +528,14 @@ function generatePDFforimagekit(contractDetails, contractText) {
             folder: "/contracts/",
           });
 
+          // Upload to Pinata (Instead of ImageKit)
+        //   const ipfsURL = await uploadToPinata(
+        //     pdfBuffer,
+        //     `${contractDetails.contractorEmail}_contract.pdf`
+        //   );
+
+        //   resolve(ipfsURL); // Return IPFS URL
+
           resolve(uploadResponse.url);
         } catch (uploadError) {
           console.error("Error uploading PDF:", uploadError);
@@ -658,79 +666,94 @@ function generatePDFforipfs(contractDetails, contractText) {
   
         // **Generate PDF Content (Same as before)**
         doc
-          .fontSize(18)
-          .font("Helvetica-Bold")
-          .text("Contract under Contractify", { align: "center" })
-          .moveDown(2);
-  
-        const addSection = (title, content) => {
-          doc.fontSize(14).font("Helvetica-Bold").text(title);
-          doc.fontSize(12).font("Helvetica").text(content || "N/A").moveDown();
-        };
-  
-        addSection("Contract Category:", contractDetails.contractCategory);
-        addSection("Contractor Name:", contractDetails.contractor);
-        addSection("Contractee Name:", contractDetails.contractee);
-        addSection("Contractor Email:", contractDetails.contractorEmail);
-        addSection("Contractee Email:", contractDetails.contracteeEmail);
-        addSection("Start Date:", contractDetails.startDate);
-        addSection("End Date:", contractDetails.endDate);
-        addSection("Contract Value:", contractDetails.contractValue);
-        addSection(
-          "Contract Creation Date:",
-          contractDetails.contractCreationDate
-        );
-        addSection("Contract Description:", contractDetails.contractDescription);
-        // addSection(
-        //     "Additional Terms:",
-        //     formatAdditionalTerms(contractDetails.dynamicFields)
-        //   );
-    
-          doc.moveDown(2);
-    
-          // **Full Contract Text**
-          doc
-            .fontSize(14)
-            .font("Helvetica-Bold")
-            .text("Contract Terms & Conditions:");
-          doc.fontSize(12).font("Helvetica").text(contractText).moveDown(3);
-    
-          // **Signature Section**
-          let yPosition = doc.y + 50;
-    
-          if (contractDetails.contractorSignature?.digital) {
-            try {
-              const response = await axios.get(
-                contractDetails.contractorSignature.digital,
-                {
-                  responseType: "arraybuffer",
-                }
-              );
-              const signatureBuffer = Buffer.from(response.data, "binary");
-    
-              doc.image(signatureBuffer, 100, yPosition, { width: 150 });
-              doc.fontSize(12).text("Contractor Signature", 100, yPosition + 50);
-            } catch (err) {
-              console.error("Error fetching contractor signature:", err);
+        .fontSize(18)
+        .font("Helvetica-Bold")
+        .text("Contract under Contractify", { align: "center" })
+        .moveDown(2);
+
+      // **Contract Details - Using contractDetails directly**
+      const addSection = (title, content) => {
+        doc.fontSize(14).font("Helvetica-Bold").text(title);
+        doc
+          .fontSize(12)
+          .font("Helvetica")
+          .text(content || "N/A")
+          .moveDown();
+      };
+
+      const formatAdditionalTerms = (dynamicFields) => {
+        if (!dynamicFields || Object.keys(dynamicFields).length === 0) {
+          return "None";
+        }
+        return Object.entries(dynamicFields)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join("\n");
+      };
+
+      addSection("Contract Category:", contractDetails.contractCategory);
+      addSection("Contractor Name:", contractDetails.contractor);
+      addSection("Contractee Name:", contractDetails.contractee);
+      addSection("Contractor Email:", contractDetails.contractorEmail);
+      addSection("Contractee Email:", contractDetails.contracteeEmail);
+      addSection("Start Date:", contractDetails.startDate);
+      addSection("End Date:", contractDetails.endDate);
+      addSection("Contract Value:", contractDetails.contractValue);
+      addSection(
+        "Contract Creation Date:",
+        contractDetails.contractCreationDate
+      );
+      addSection("Contract Description:", contractDetails.contractDescription);
+      addSection(
+        "Additional Terms:",
+        formatAdditionalTerms(contractDetails.dynamicFields)
+      );
+
+      doc.moveDown(2);
+
+      // **Full Contract Text**
+      doc
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Contract Terms & Conditions:");
+      doc.fontSize(12).font("Helvetica").text(contractText).moveDown(3);
+
+      // **Signature Section**
+      let yPosition = doc.y + 50;
+
+      if (contractDetails.contractorSignature?.digital) {
+        try {
+          const response = await axios.get(
+            contractDetails.contractorSignature.digital,
+            {
+              responseType: "arraybuffer",
             }
-          }
-    
-          if (contractDetails.contracteeSignature?.digital) {
-            try {
-              const response = await axios.get(
-                contractDetails.contracteeSignature.digital,
-                {
-                  responseType: "arraybuffer",
-                }
-              );
-              const signatureBuffer = Buffer.from(response.data, "binary");
-    
-              doc.image(signatureBuffer, 350, yPosition, { width: 150 });
-              doc.fontSize(12).text("Contractee Signature", 350, yPosition + 50);
-            } catch (err) {
-              console.error("Error fetching contractee signature:", err);
+          );
+          const signatureBuffer = Buffer.from(response.data, "binary");
+
+          doc.image(signatureBuffer, 100, yPosition, { width: 150 });
+          doc.fontSize(12).text("Contractor Signature", 100, yPosition + 50);
+        } catch (err) {
+          console.error("Error fetching contractor signature:", err);
+        }
+      }
+
+      if (contractDetails.contracteeSignature?.digital) {
+        try {
+          const response = await axios.get(
+            contractDetails.contracteeSignature.digital,
+            {
+              responseType: "arraybuffer",
             }
-          }
+          );
+          const signatureBuffer = Buffer.from(response.data, "binary");
+
+          doc.image(signatureBuffer, 350, yPosition, { width: 150 });
+          doc.fontSize(12).text("Contractee Signature", 350, yPosition + 50);
+        } catch (err) {
+          console.error("Error fetching contractee signature:", err);
+        }
+      }
+
         doc.end();
       } catch (error) {
         reject(error);
@@ -749,9 +772,11 @@ const generateContractPDF = async (req, res) => {
     const result = await generateContract(contract);
 
     if (result.success) {
-    storeCIDOnChain(contract._id, result.pdfPathipfs);
+    const blockchainResult =await storeCIDOnChain(contract._id, result.pdfPathipfs);
+    console.log("Blockchain Result:", blockchainResult);
       contract.imagekitpdfurl = result.pdfPathimagekit;
       contract.ipfspdfurl = result.pdfPathipfs;
+      contract.transactionHash = blockchainResult.transactionHash;
       await contract.save();
       res.status(200).json({
         message: "Contract PDF generated successfully",
@@ -856,7 +881,7 @@ const downloadPDF = async (req, res) => {
   if (!contract) {
     return res.status(404).json({ message: "Contract not found" });
   }
-  const pdfpath = contract.imagekitpdfurl;
+  const pdfpath = contract.ipfspdfurl;
   if (!pdfpath) {
     return res.status(404).json({ message: "PDF not generated yet" });
   }
