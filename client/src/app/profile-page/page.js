@@ -15,15 +15,35 @@ import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
-  const token = Cookies.get("authToken");
+  // const token = Cookies.get("authToken");
+  const [token, setToken] = useState(null);
   const userType =
     typeof window !== "undefined" ? localStorage.getItem("userType") : null;
   const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  useEffect(() => {
+    fetch(`${API_URL}/api/auth/get-token`, {
+      method: "GET",
+      credentials: "include", // Ensure cookies are sent
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.token) {
+          setToken(data.token);
+        } else {
+          console.log("No token received");
+        }
+      })
+      .catch((error) => console.log("Error fetching token:", error));
+  }, []);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
+      console.log("Token fetching:",token);
+
       if (!token || !userType) return;
+      console.log("Calling the user profile....");
 
       try {
         const endpoint =
