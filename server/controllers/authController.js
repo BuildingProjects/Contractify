@@ -186,6 +186,7 @@ exports.contractorLogin = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
+    
     const token = generateToken({
       id: user._id,
       email: email,
