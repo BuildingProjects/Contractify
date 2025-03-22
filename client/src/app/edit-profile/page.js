@@ -18,14 +18,31 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const token = Cookies.get("authToken");
+  // const token = Cookies.get("authToken");
+  const [token, setToken] = useState(null);
   const userType =
     typeof window !== "undefined" ? localStorage.getItem("userType") : null;
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  useEffect(() => {
+    fetch(`${API_URL}/api/auth/get-token`, {
+      method: "GET",
+      credentials: "include", // Ensure cookies are sent
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.token) {
+          setToken(data.token);
+        } else {
+          console.log("No token received");
+        }
+      })
+      .catch((error) => console.log("Error fetching token:", error));
+  }, []);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!token || !userType) return;
+      // if (!token || !userType) return;
 
       try {
         const endpoint =
@@ -127,102 +144,102 @@ export default function EditProfilePage() {
 
   if (!user) {
     return (
-      <div className="flex justify-center items-center h-screen bg-white">
-        <Loader className="animate-spin text-gray-500 w-10 h-10" />
+      <div className='flex justify-center items-center h-screen bg-white'>
+        <Loader className='animate-spin text-gray-500 w-10 h-10' />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white py-12">
-      <div className="max-w-3xl mx-auto p-6">
+    <div className='min-h-screen bg-white py-12'>
+      <div className='max-w-3xl mx-auto p-6'>
         {/* Back Button */}
         <button
           onClick={() => router.push("/profile-page")}
-          className="text-blue-600  flex items-center mb-6"
+          className='text-blue-600  flex items-center mb-6'
         >
           ← Back to Profile
         </button>
 
         {/* Edit Profile Form */}
-        <div className="bg-white shadow-md rounded-lg p-8 border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+        <div className='bg-white shadow-md rounded-lg p-8 border border-gray-200'>
+          <h2 className='text-2xl font-bold text-gray-800 mb-4'>
             Edit Profile
           </h2>
 
-          {error && <p className="text-red-500 mb-4">{error}</p>}
+          {error && <p className='text-red-500 mb-4'>{error}</p>}
 
-          <form onSubmit={handleSubmit} className="grid gap-4">
+          <form onSubmit={handleSubmit} className='grid gap-4'>
             {/* Name */}
             <InputField
-              label="Name"
-              name="name"
+              label='Name'
+              name='name'
               value={formData.name}
               onChange={handleChange}
             />
 
             {/* Date of Birth */}
             <InputField
-              label="Date of Birth"
-              name="dob"
-              type="date"
+              label='Date of Birth'
+              name='dob'
+              type='date'
               value={formData.dob}
               onChange={handleChange}
             />
 
             {/* Gender */}
             <div>
-              <label className="block text-gray-700 font-medium">Gender</label>
+              <label className='block text-gray-700 font-medium'>Gender</label>
               <select
-                name="gender"
+                name='gender'
                 value={formData.gender}
                 onChange={handleChange}
-                className="w-full mt-1 p-2 border rounded-md text-black"
+                className='w-full mt-1 p-2 border rounded-md text-black'
               >
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
+                <option value=''>Select Gender</option>
+                <option value='male'>Male</option>
+                <option value='female'>Female</option>
+                <option value='other'>Other</option>
               </select>
             </div>
 
             {/* Address */}
             <InputField
-              label="Address"
-              name="address"
+              label='Address'
+              name='address'
               value={formData.address}
               onChange={handleChange}
             />
 
             {/* Pincode */}
             <InputField
-              label="Pincode"
-              name="pincode"
-              type="number"
+              label='Pincode'
+              name='pincode'
+              type='number'
               value={formData.pincode}
               onChange={handleChange}
             />
 
             {/* City */}
             <InputField
-              label="City"
-              name="city"
+              label='City'
+              name='city'
               value={formData.city}
               onChange={handleChange}
             />
 
             {/* State */}
             <InputField
-              label="State"
-              name="state"
+              label='State'
+              name='state'
               value={formData.state}
               onChange={handleChange}
             />
 
             {/* Submit Button */}
             <button
-              type="submit"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+              type='submit'
+              className='bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition'
               disabled={loading}
             >
               {loading ? "Updating..." : "Save Changes"}
@@ -237,13 +254,13 @@ export default function EditProfilePage() {
 // Reusable Input Component
 const InputField = ({ label, name, type = "text", value, onChange }) => (
   <div>
-    <label className="block text-gray-700 font-medium">{label}</label>
+    <label className='block text-gray-700 font-medium'>{label}</label>
     <input
       type={type}
       name={name}
       value={value}
       onChange={onChange}
-      className="w-full mt-1 p-2 border rounded-md text-black"
+      className='w-full mt-1 p-2 border rounded-md text-black'
     />
   </div>
 );
