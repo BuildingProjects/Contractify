@@ -36,7 +36,8 @@ export default function DashboardPage() {
   const [isContractor, setIsContractor] = useState(false);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
-  const token = Cookies.get("authToken");
+  // const token = Cookies.get("authToken");
+  const [token, setToken] = useState(null);
   const userType =
     typeof window !== "undefined" ? localStorage.getItem("userType") : null;
   const router = useRouter();
@@ -77,6 +78,8 @@ export default function DashboardPage() {
         if (!data.token) {
           router.push("/");
           return;
+        } else {
+          setToken(data.token);
         }
       })
       .catch((error) => console.log("Error fetching token:", error));
