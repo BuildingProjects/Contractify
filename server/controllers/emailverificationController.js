@@ -6,7 +6,7 @@ exports.verifyContractorEmail = async (req, res) => {
   try {
     console.log("Email verification Initialized..");
 
-    console.log(req);
+    // console.log(req);
     const { email, code } = req.body;
 
     // Find user by email and verification code
